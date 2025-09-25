@@ -1,0 +1,10 @@
+@import "./elements.css";
+@import "./fonts/fonts.css";
+@import "./normalize.css";
+@import "./variables.css";
+
+
+/* --- ESTILOS GLOBAIS E MELHORIAS DE UX --- */
+html {
+    scroll-behavior: smooth; /* Rolagem suave na página inteira */
+}

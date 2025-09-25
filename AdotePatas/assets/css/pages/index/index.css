@@ -1,0 +1,312 @@
+@import "../index/partials/botao-patinhas.css";
+@import "../../global/global.css";
+
+* {
+    padding: 0;
+    margin: 0;
+    border: none;
+    box-sizing: border-box; /* Boa prática para controle de layout */
+}
+body{
+    background-color: var(--cor-laranja-claro) !important;
+    overflow-x: hidden; /* Evita scroll horizontal indesejado */
+    padding: 0;
+}
+/* Cor de seleção de texto personalizada */
+::selection {
+    background-color: var(--cor-rosa-escuro);
+    color: var(--cor-branca);
+}
+.navbar {
+  margin-bottom: -106px;
+  background: transparent;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+  font-size: 2em;
+  font-weight: bold;
+  z-index: 5;
+}
+
+.navbar-logo {
+  width: clamp(60px, 10vw, 80px); /* Ajustado */
+  height: clamp(60px, 10vw, 80px); /* Ajustado */
+  object-fit: contain;
+}
+
+.navbar-scrolled {
+    background-color: var(--cor-branca);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 0.2rem 0;
+}
+
+.navbar-scrolled .navbar-logo {
+    width: clamp(55px, 10vw, 70px);
+}
+
+.navbar-toggler {
+    border: none;
+}
+
+.navbar-toggler:focus {
+    box-shadow: none;
+}
+
+.navbar-nav {
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.nav-link {
+    font-weight: 800;
+    cursor: pointer;
+    position: relative;
+    padding: 10px 15px;
+    transition: color 0.3s ease;
+    display: flex;
+    align-items: center;
+    font-size: 5rem;
+    white-space: nowrap;
+    border-radius: 4px;
+}
+
+.navlink {
+    color: var(--cor-cinza-texto);
+}
+
+
+.navlink::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 15px;
+    width: calc(100% - 30px);
+    height: 2px;
+    background: var(--cor-rosa-escuro);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.navlink:hover, .navlink:focus {
+    color: var(--cor-rosa-escuro) !important;
+}
+
+.navlink:hover::after, .navlink:focus::after {
+    transform: scaleX(1);
+}
+
+
+.loginlink {
+    color: var(--cor-vermelho) !important;
+}
+
+.loginlink::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    left: 15px;
+    width: calc(100% - 30px);
+    height: 2px;
+    background: var(--cor-vermelho);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.loginlink:hover, .loginlink:focus {
+    color: var(--cor-vermelho);
+}
+
+.loginlink:hover::after, .loginlink:focus::after {
+    transform: scaleX(1);
+}
+
+.loginlink {
+  position: relative;
+  margin-left: 1.5rem;
+}
+
+.loginlink::before {
+  content: '|';
+  position: absolute;
+  left: -25px;
+  top: 45%;
+  transform: translateY(-50%);
+  color: var(--cor-cinza);
+  font-weight: 300;
+  font-size: 2.5rem;
+}
+
+
+/* --- HERO SECTION --- */
+.hero {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  background-image: url("../../../../images/index/fundo-header.svg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  align-items: center;
+  padding: 2rem var(--container-padding);
+  box-sizing: border-box;
+}
+
+
+.hero-content {
+  display: flex;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding-top: 80px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.hero-text {
+  max-width: 700px;
+  width: 100%;
+}
+
+.hero-text-content .adote-patas {
+  font-family: "Kawaii RT";
+  font-size: clamp(2.3rem, 8vw, 5.5rem); /* Leve ajuste */
+  color: var(--cor-vermelho);
+  line-height: 1.1;
+  margin-top: 12rem;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.hero-text-content .adote-vidas {
+  font-family: "Kawaii RT";
+  font-size: clamp(2rem, 6vw, 4.5rem); /* Leve ajuste */
+  margin-bottom: 1rem;
+  color: var(--cor-rosa-escuro);
+  line-height: 1.1;
+}
+
+.hero-text-content p {
+  font-family: "Poppins", sans-serif;
+  font-size: clamp(1.5rem, 2.5vw, 1.25rem);
+  line-height: 1.6;
+  color: var(--cor-cinza);
+  opacity: 0.8;
+  max-width: 550px;
+}
+
+.hero-image-container {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  width: 60%;
+  margin-top: 1rem;
+}
+
+.hero-image-container img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* --- MEDIA QUERIES (RESPONSIVIDADE) --- */
+@media (max-width: 991px) {
+  .hero {
+    min-height: auto;
+    padding: 7rem 0 4rem 0;
+    text-align: center;
+  }
+  .hero-text-content p {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+  .hero-image-container {
+      /* Mágica do posicionamento */
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin: 0 1vw 1vw 0;
+    width: 70px;
+    max-width: 30vw;
+    right: 2vw;
+    left: auto;
+    transform: none;
+    z-index: 2;
+    padding: 0;
+}
+  .navbar{
+    background-color: var(--cor-branca);
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+    margin: 0;
+  }
+
+.navbar-collapse {
+    background: var(--cor-branca);
+    margin-top: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    padding: 1rem;
+  }
+  .navbar-nav {
+    gap: 0.5rem;
+}
+
+  .nav-link {
+    justify-content: center;
+}
+
+  .loginlink:hover {
+    color: var(--cor-branca) !important;
+    background-color: var(--cor-vermelho);
+}
+
+ .loginlink {
+    margin-left: 0;
+  }
+
+  .loginlink::before {
+    display: none;
+  }
+
+}
+
+
+@media (max-width: 480px) {
+  .hero {
+    margin-top: -65px;
+    padding-top: 6rem;   
+}
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+}
+
+  .navbar, .adopt-btn, .navlink::after {
+    transition: none;
+}
+
+  .paw {
+    animation: none;
+    display: none;
+}
+  .adopt-btn:hover {
+    transform: none;
+}
+
+}
+
+/* ---@media da imagem cachorro --- */
+
+
+@media (max-width: 1577px) {
+  .hero-image-container {
+    width: 57%;
+    top: 15%;
+    left: 53%;
+}
