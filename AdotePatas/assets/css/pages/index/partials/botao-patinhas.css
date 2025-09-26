@@ -2,70 +2,111 @@
 .btn-container {
   position: relative;
   display: inline-block;
-  margin: clamp(1rem, 3vw, 1.5rem) 0;
-  width: auto;
-  max-width: 260px; /* Largura máxima ajustada para desktop */
 }
 
 .adopt-btn {
-  position: relative;
+  position: relative; /* Essencial para o posicionamento dos filhos */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(1rem, 3vw, 1.25rem) clamp(2rem, 6vw, 2.5rem);
-  background-color: var(--cor-vermelho);
-  color: var(--cor-branca);
+  padding: 1.2rem 3.5rem; /* Padding para dar tamanho, mais flexível que width/height */
+  background-color: #b92b2b; /* Um vermelho mais próximo da imagem */
+  color: #f0e9e9; /* Um branco levemente "quente" */
   border: none;
-  border-radius: 20px; /* Botão mais arredondado (pílula) */
+  border-radius: 16px; /* Bordas bem arredondadas, estilo "pill" */
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
-  font-size: clamp(1rem, 3vw, 1.25rem);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-size: clamp(1.5rem, 4vw, 2.2rem); /* Fonte grande e responsiva */
+  text-transform: none; /* Remove o uppercase */
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(155, 0, 0, 0.3);
-  overflow: hidden;
-  z-index: 1;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-  min-height: 60px;
-  width: 325px;
-  max-width: 400px;
-  margin-top: 7rem;
+  margin-top: 5rem;
+  overflow: hidden; /* Garante que nada vaze das bordas arredondadas */
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  
+  /* Sombra principal do botão para dar o efeito de flutuação */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19);
 }
 
+/* O texto do botão com efeito 3D */
+.adopt-btn span {
+  position: relative;
+  z-index: 2; /* O texto fica ACIMA do coração */
+  /* Sombra do texto para dar profundidade e destacá-lo */
+  text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* O coração com efeito de baixo-relevo (inset) */
+.heart-background {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1; /* Fica entre o fundo do botão e o texto */
+  
+  font-size: 8rem; /* Tamanho do coração */
+  line-height: 1;
+  color: #a82626; /* Cor base do coração, um pouco mais escura que o botão */
+
+  /* O TRUQUE: Múltiplas sombras para simular o baixo-relevo */
+  /* 1. Sombra escura na parte de baixo/direita */
+  /* 2. Sombra clara (brilho) na parte de cima/esquerda */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3), 
+               -1px -1px 2px rgba(255, 255, 255, 0.05);
+}
+
+/* Efeitos de Interação */
 .adopt-btn:hover {
-  transform: translateY(-5px) scale(1.03);
-  box-shadow: 0 8px 20px rgba(155, 0, 0, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 10px 25px rgba(0, 0, 0, 0.22);
 }
 
 .adopt-btn:active {
   transform: translateY(1px);
-  box-shadow: 0 2px 8px rgba(155, 0, 0, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.adopt-btn:focus-visible { /* Melhor para acessibilidade que :focus */
+.adopt-btn:focus-visible {
   outline: 3px solid var(--cor-rosa-pastel);
   outline-offset: 3px;
-}
+}             
 
 /* Efeito de patinhas ao redor do botão */
 .paw-prints {
   position: absolute;
-  left: 50%;
-  bottom: -30px;
+  left: 44%;
+  bottom: -18px;
   transform: translateX(-50%);
-  width: 120%;
-  height: 50px;
+  width: 100%;
+  height: 20px; /* Mais achatado */
   pointer-events: none;
-  z-index: 0; /* Garante que fique atrás do botão */
+  z-index: -1; /* Garante que fique atrás do botão */
   user-select: none;
+}
+
+.heart-background {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  font-size: 6.5rem;
+  line-height: 1;
+  color: #a82626;
+  text-shadow: 1px 2px 2px rgba(255, 255, 255, 0.986),
+  -2px -2px 3px rgba(0, 0, 0, 0.363);
+}
+
+.adopt-btn span {
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .paw {
   position: absolute;
-  bottom: 1px;
-  font-size: clamp(12px, 2vw, 18px);
+  bottom: 0px;
+  font-size: clamp(20px, 3vw, 32px); /* Maior, mas mantendo posição */
   opacity: 0;
   animation: pawAnimation 4s linear infinite;
   color: var(--cor-vermelho); /* Patinhas com a cor principal */

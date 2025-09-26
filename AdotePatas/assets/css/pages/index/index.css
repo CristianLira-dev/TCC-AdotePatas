@@ -174,7 +174,7 @@ body{
   font-size: clamp(2.3rem, 8vw, 5.5rem); /* Leve ajuste */
   color: var(--cor-vermelho);
   line-height: 1.1;
-  margin-top: 12rem;
+  margin-top: 5.5rem;
   white-space: nowrap;
   overflow-wrap: normal;
   word-break: normal;
@@ -183,18 +183,17 @@ body{
 .hero-text-content .adote-vidas {
   font-family: "Kawaii RT";
   font-size: clamp(2rem, 6vw, 4.5rem); /* Leve ajuste */
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
   color: var(--cor-rosa-escuro);
   line-height: 1.1;
 }
 
 .hero-text-content p {
   font-family: "Poppins", sans-serif;
-  font-size: clamp(1.5rem, 2.5vw, 1.25rem);
+  font-size: 1.7rem;
   line-height: 1.6;
   color: var(--cor-cinza);
-  opacity: 0.8;
-  max-width: 550px;
+  opacity: 0.7;
 }
 
 .hero-image-container {
@@ -202,7 +201,6 @@ body{
   top: 10%;
   left: 50%;
   width: 60%;
-  margin-top: 1rem;
 }
 
 .hero-image-container img {
@@ -309,4 +307,5 @@ body{
     width: 57%;
     top: 15%;
     left: 53%;
+  }
 }
