@@ -1,0 +1,61 @@
+/* Animação do Hamburger Menu integrada com Bootstrap */
+
+/* Removemos o estilo padrão do botão do Bootstrap */
+.navbar-toggler.hamburger {
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+
+.navbar-toggler.hamburger:focus {
+  box-shadow: none;
+}
+
+/* O container SVG */
+.hamburger svg {
+  height: 50px;
+  width: 50px;
+  transition: transform 0.2s;
+}
+
+/* Estilo base das linhas do ícone */
+.hamburger .line {
+  transition: 0.5s;
+  stroke-width: 5px; /* Um pouco mais fino para elegância */
+  stroke: var(--cor-cinza-texto); /* Cor integrada ao seu tema */
+}
+
+.lineTop {
+  stroke-dasharray: 40 40;
+}
+
+.lineBottom {
+  stroke-dasharray: 40 40;
+}
+
+.lineMid {
+  stroke-dasharray: 40 40;
+}
+
+/* --- A MÁGICA DA INTEGRAÇÃO --- */
+/* Em vez de usar ':checked', usamos o seletor de atributo 'aria-expanded="true"' que o Bootstrap adiciona ao botão quando o menu está aberto. */
+
+.hamburger[aria-expanded="true"] svg .line {
+  stroke: var(--cor-vermelho); /* Cor integrada ao seu tema para o estado "aberto" */
+}
+
+.hamburger[aria-expanded="true"] svg .lineTop {
+  stroke-dashoffset: 0;
+  transform-origin: left;
+  transform: rotateZ(45deg) translate(-7px, -5px);
+}
+
+.hamburger[aria-expanded="true"] svg .lineMid {
+  stroke-dashoffset: 40;
+}
+
+.hamburger[aria-expanded="true"] svg .lineBottom {
+  stroke-dashoffset: 0;
+  transform-origin: left;
+  transform: rotateZ(-45deg) translate(-5px, 5px);
+}

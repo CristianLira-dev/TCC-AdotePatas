@@ -12,12 +12,12 @@
             (() => {
                 pawPrints.innerHTML = '';
                 
-                for (let i = 0; i < 20; i++) {
+                for (let i = 0; i < 10; i++) {
                     const paw = document.createElement('div');
                     paw.classList.add('paw');
                     paw.innerHTML = '🐾';
-                    paw.style.left = `${Math.random() * 35}%`;
-                    paw.style.top = `${Math.random() * 35}%`;
+                    paw.style.left = `${Math.random() * 100}%`;
+                    paw.style.top = `${Math.random() * 100}%`;
                     paw.style.animationDelay = `${Math.random() * 5}s`;
                     pawPrints.appendChild(paw);
                 }
