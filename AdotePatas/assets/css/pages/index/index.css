@@ -5,10 +5,6 @@
 @import "./partials/botao-patinhas.css";
 @import "../../global/global.css";
 
-
-/* ==========================================================================
-   ESTILOS GLOBAIS DA PÁGINA
-   ========================================================================== */
 * {
     padding: 0;
     margin: 0;
@@ -28,10 +24,6 @@ body {
     color: var(--cor-branca);
 }
 
-
-/* ==========================================================================
-   NAVBAR - Barra de Navegação Superior
-   ========================================================================== */
 .navbar {
     margin-bottom: -150px;
     background: transparent;
@@ -144,10 +136,6 @@ body {
 }
 
 
-/* ==========================================================================
-   HERO SECTION - VERSÃO FINAL (BASEADO NAS IMAGENS DE REFERÊNCIA)
-   ========================================================================== */
-
 /* --- ESTILOS GERAIS DO HERO --- */
 .hero {
     position: relative;
@@ -231,40 +219,36 @@ body {
 
 
 /* --- MOBILE E TABLET (Telas < 992px) --- */
-/* Em index.css, substitua o bloco de media query existente por este */
-
-/* --- MOBILE E TABLET (Telas < 992px) --- */
 @media (max-width: 991.98px) {
-    /* Estilos da Navbar para mobile (permanecem os mesmos) */
     .navbar {
-        background-color: var(--cor-branca);
-        box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
-        margin: 0;
+            margin-bottom: -150px;
     }
-    .navbar-collapse {
-        background: var(--cor-branca);
-        margin-top: 1rem;
-        border-radius: 8px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        padding: 1rem;
-    }
+    
     .navbar-nav {
-        gap: 0.5rem;
+        gap: 2rem; /* Reduzimos o espaçamento entre os links */
+        flex-direction: row !important; /* Garantimos a direção em linha */
+        align-items: center;
     }
     .nav-link {
-        justify-content: center;
+        font-size: 1rem !important; /* Tamanho de fonte drasticamente reduzido para mobile */
+        padding: 8px 6px; /* Ajuste no padding para economizar espaço */
+        justify-content: flex-end; /* Alinha o texto à direita (mantendo o padrão) */
     }
+
+    /* Ajustamos o espaçamento e removemos o separador para telas muito pequenas */
     .loginlink {
         margin-left: 0;
     }
+
     .loginlink::before {
-        display: none;
+        font-size: 1.8rem; /* Reduzimos o tamanho do separador "|" */
+        left: -10px; /* Aproximamos o separador do link */
     }
 
-    /* --- LAYOUT EMPILHADO PARA O HERO --- */
+    /* --- LAYOUT EMPILHADO PARA O HERO (mantém-se igual) --- */
     .hero {
         padding-top: 120px;
-        padding-bottom: 4rem; /* Padding normal na base */
+        padding-bottom: 4rem;
         background-image: url("../../../../images/index/fundo-header-mobile.svg");
     }
 
@@ -276,7 +260,6 @@ body {
     }
 
     .hero-image-container {
-        /* A imagem agora usa margens para se espaçar */
         margin-top: 2rem; 
         text-align: center;
     }
@@ -287,31 +270,26 @@ body {
     }
 
     .btn-container {
-           /* O botão usa margem para se espaçar da imagem */
            margin-top: 2rem;
            display: flex;
            justify-content: center;
            align-items: center;
     }
 }
-/* --- PREFERÊNCIA POR REDUÇÃO DE MOVIMENTO --- */
-@media (prefers-reduced-motion: reduce) {
-    html {
-        scroll-behavior: auto;
-    }
 
-    .navbar,
-    .adopt-btn,
-    .navlink::after {
-        transition: none;
+/* * BOA PRÁTICA ADICIONAL:
+ * Adicionamos um novo breakpoint para telas extremamente pequenas (como um iPhone SE),
+ * onde até mesmo o texto reduzido pode quebrar o layout.
+ * Aqui, a solução é remover o separador "|" para ganhar espaço vital.
+*/
+@media (max-width: 380px) {
+    .loginlink::before {
+        display: none; /* Esconde o separador em telas muito estreitas */
     }
-
-    .paw {
-        animation: none;
-        display: none;
+    .navbar-nav {
+        gap: 0.5rem; /* Reduz ainda mais o espaçamento */
     }
-
-    .adopt-btn:hover {
-        transform: none;
+    .nav-link {
+        padding: 8px 4px;
     }
 }
