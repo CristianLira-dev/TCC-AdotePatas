@@ -18,7 +18,7 @@
   font-size: clamp(1.5rem, 4vw, 2.2rem); /* Fonte grande e responsiva */
   text-transform: none; /* Remove o uppercase */
   cursor: pointer;
-  margin-top: 5rem;
+  margin-top: 3rem;
   overflow: hidden; /* Garante que nada vaze das bordas arredondadas */
   transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
   
