@@ -11,14 +11,14 @@
   justify-content: center;
   padding: 1.2rem 3.5rem; /* Padding para dar tamanho, mais flexível que width/height */
   background-color: #b92b2b; /* Um vermelho mais próximo da imagem */
-  color: #f0e9e9; /* Um branco levemente "quente" */
-  border-radius: 16px; /* Bordas bem arredondadas, estilo "pill" */
+  color: #f0e9e9;
+  border-radius: 16px;
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: clamp(1.5rem, 4vw, 2.2rem); /* Fonte grande e responsiva */
   text-transform: none; /* Remove o uppercase */
   cursor: pointer;
-  margin-top: 3rem;
+  margin-top: 1rem;
   overflow: hidden; /* Garante que nada vaze das bordas arredondadas */
   transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
   
@@ -105,6 +105,12 @@
   opacity: 0;
   animation: pawAnimation 4s linear infinite;
   color: var(--cor-vermelho); /* Patinhas com a cor principal */
+}
+
+@media (min-width: 1500px) {
+  .btn-container {
+    margin-top: 6rem;
+  }
 }
 
 /* Animação aprimorada para um efeito mais "flutuante" */

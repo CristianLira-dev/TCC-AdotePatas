@@ -6,5 +6,7 @@
     --cor-rosa-pastel: #ffc2c2;
     --cor-laranja-claro: #f7f4f2;
     --cor-rosa-escuro: #bf6964;
+    --cor-femea-simbolo: #E677AD;
+    --cor-macho-simbolo: #6DA8E4;
     --container-padding: clamp(1rem, 5vw, 2rem);
 }
