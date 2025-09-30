@@ -178,7 +178,7 @@ body {
 
 .hero-text-content p {
   font-family: "Poppins", sans-serif;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   line-height: 1.3;
   color: var(--cor-cinza);
   opacity: 0.7;
@@ -186,11 +186,34 @@ body {
   margin-bottom: 1rem;
 }
 
-/* --- NOVA IMPLEMENTAÇÃO DO FUNDO --- */
-.image-background {
-  position: relative;
-  z-index: 1;
+  .hero-image-container img {
+  position: absolute;
+  right: 0;
+  bottom: -40px;
+  width: 650px;
+  max-width: none;
+  z-index: 10;
+    bottom: -160px;
+    right: -16%;
+    width: 110%;
+    max-width: 1200px;
+  }
+
+@media (max-width: 1500px) {
+  .hero-image-container img {
+    bottom: -230px;
+    right: -10%;
+    width: 125%;
+  }
 }
+@media (max-width: 1400px) {
+  .hero-image-container img {
+    bottom: -200px;
+    right: -10%;
+    width: 105%;
+  }
+}
+
 
 .image-background::before {
   content: "";
@@ -390,21 +413,24 @@ body {
   color: var(--cor-vermelho);
 }
 /* ==========================================================================
-   SWIPER - Versão com posicionamento manual
+   SWIPER - Refatorado para Responsividade (Mobile First)
    ========================================================================== */
 
+/* --- Container Principal do Swiper --- */
 .swiper {
   width: 100%;
-  max-width: 440px; /* Aumentado de 360px para 440px */
-  height: 100%;
-  overflow: visible;
+  max-width: 280px; /* Tamanho base para telas pequenas (Ex: iPhone SE) */
+  margin-left: auto;
+  margin-right: auto; /* Garante a centralização do carrossel */
+  overflow: visible; /* Essencial para ver os slides laterais */
   user-select: none;
 }
 
 .swiper-wrapper {
-  align-items: center;
+  align-items: center; /* Mantém os slides verticalmente alinhados */
 }
 
+/* --- Estilo dos Slides (O Ponto Principal da Mudança) --- */
 .swiper-slide {
   display: flex;
   align-items: center;
@@ -413,53 +439,66 @@ body {
   font-size: 16px;
   font-weight: bold;
   color: #fff;
-  box-shadow: rgba(0, 0, 0, 0.15) 0px 8px 20px -3px;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  border: solid 10px var(--cor-rosa-escuro);
-  /* Tamanho fixo maior */
-  width: 420px !important; /* Aumentado de 260px */
-  height: 560px !important; /* Aumentado de 350px */
+  border: solid 8px var(--cor-rosa-escuro); /* Borda um pouco menor em mobile */
+  
+  /* --- PONTO CRÍTICO: Removendo tamanhos fixos --- */
+  width: 100%; /* O slide agora ocupa 100% do container .swiper */
+  aspect-ratio: 420 / 560; /* Mantém a proporção original (3:4) sem fixar a altura */
+  
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 8px 20px -3px;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+              opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Estado base - Cards laterais mais discretos */
+/* --- Efeitos Visuais dos Slides (Ativo e Inativos) --- */
 .swiper-slide:not(.swiper-slide-active) {
   transform: scale(0.8);
   opacity: 0.6;
 }
 
-/* Slide ANTERIOR - Esquerda */
-.swiper-slide-prev {
-  opacity: 0.7;
-}
-
-/* Slide SEGUINTE - Direita */
-.swiper-slide-next {
-  opacity: 0.7;
-}
-
-/* Slide ATIVO - Centro e destaque */
 .swiper-slide-active {
   opacity: 1;
   z-index: 20;
   box-shadow: rgba(0, 0, 0, 0.25) 0px 15px 35px -8px;
 }
 
-/* Background images */
+/* --- Imagens de Fundo (mantidas como no original) --- */
 .swiper-slide:nth-child(1n) {
   background-image: url("../../../../images/index/cacau.webp");
 }
-
 .swiper-slide:nth-child(2n) {
   background-image: url("../../../../images/index/zeus.webp");
 }
-
 .swiper-slide:nth-child(3n) {
-  background-image: url("../../../../images/index/cacau.webp");
+  background-image: url("../../../../images/index/gatinho.jpg");
 }
 
+
+/* ==========================================================================
+   NOVO: Bloco de Responsividade para o Swiper
+   ========================================================================== */
+
+/* --- TABLETS (a partir de 768px) --- */
+@media (min-width: 768px) {
+  .swiper {
+    max-width: 380px; /* Aumentamos o tamanho do carrossel em tablets */
+  }
+  .swiper-slide {
+     border-width: 10px; /* Retornamos a borda para o tamanho original */
+  }
+}
+
+/* --- DESKTOPS (a partir de 992px) --- */
+@media (min-width: 992px) {
+  .swiper {
+    max-width: 440px; /* Tamanho original para desktops */
+    margin: 0; /* No desktop, a coluna do Bootstrap já cuida do alinhamento */
+  }
+}
 /* ==========================================================================
    Texto de como nós surgimos
    ========================================================================== */
@@ -469,6 +508,7 @@ body {
   line-height: 1.2;
   font-family: "Poppins", sans-serif;
   color: var(--cor-cinza-texto);
+  margin: 0 1rem;
 }
 .conclusao-about {
   font-size: 2rem;
@@ -501,91 +541,166 @@ span.destaque-recomeco {
 }
 
 /* ==========================================================================
-   FOOTER - Rodapé com Efeito Clip-Path
+   FOOTER - CLIP-PATH E ESTILIZAÇÃO
    ========================================================================== */
-/* ALTERNATIVA COM POLYGON PARA MAIS CONTROLE */
+
 .site-footer {
   position: relative;
   background-color: var(--cor-vermelho-claro);
   color: var(--cor-branca);
   text-align: center;
-  /* Aplica a concavidade EXTRA profunda */
-  -webkit-clip-path: url(#footerConcavityExtraDeep);
-  clip-path: url(#footerConcavityExtraDeep);
-  padding: 10rem 2rem 3rem; /* Aumentei o padding-top para acomodar a concavidade mais profunda */
-  opacity: 0.63;
+  opacity: 0.95;
   z-index: 1;
-  margin-top: -4rem; /* Aumentei a margem negativa para melhor sobreposição */
-}
+  transition: all 0.3s ease;
 
-/* Versão com concavidade mais suave */
-.site-footer.shallow {
+  /* --- ESTILO BASE (MOBILE) --- */
   -webkit-clip-path: url(#footerConcavityShallow);
   clip-path: url(#footerConcavityShallow);
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  padding: 8rem 0 3rem;
+  margin-top: -5rem;
 }
 
-/* Versão com concavidade média */
-.site-footer.deep {
-  -webkit-clip-path: url(#footerConcavityDeep);
-  clip-path: url(#footerConcavityDeep);
+.site-footer::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
 }
 
-/* NOVA: Versão com concavidade padrão (mais funda que a original) */
-.site-footer.default {
-  -webkit-clip-path: url(#footerConcavity);
-  clip-path: url(#footerConcavity);
+/* --- TABLETS (A partir de 768px) --- */
+@media (min-width: 768px) {
+  .site-footer {
+    -webkit-clip-path: url(#footerConcavityDeep);
+    clip-path: url(#footerConcavityDeep);
+    padding-top: 10rem;
+    margin-top: -6rem;
+  }
 }
 
-.footer-logo {
-  width: 100px;
-  height: 100px;
+/* --- DESKTOPS (A partir de 1200px) --- */
+@media (min-width: 1200px) {
+  .site-footer {
+    -webkit-clip-path: url(#footerConcavityExtraDeep);
+    clip-path: url(#footerConcavityExtraDeep);
+    padding-top: 12rem;
+    margin-top: -7rem;
+  }
+}
+
+/* --- Container do Conteúdo do Footer --- */
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  
+  /* --- CORREÇÃO APLICADA AQUI --- */
+  /* De flex-start para stretch, para igualar a altura das colunas */
+  align-items: stretch; 
+  
+  max-width: 1100px;
+  gap: 2rem;
+  text-align: left;
+  position: relative;
+  z-index: 2;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* --- Colunas Individuais do Footer --- */
+.footer-column {
+  flex: 1;
+}
+
+.footer-column h3 {
+  font-size: 1.2rem;
+  font-weight: bold;
   margin-bottom: 1rem;
-  opacity: 0.9;
 }
 
-.footer-content p {
-  margin: 0 0 1.5rem;
-  font-family: "Poppins", sans-serif;
-  font-size: 1.1rem;
-  opacity: 0.8;
+.footer-column ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
-.footer-nav {
-  margin-bottom: 1.5rem;
+.footer-column ul li {
+  margin-bottom: 0.5rem;
 }
 
-.footer-nav a {
+.footer-column a {
   color: var(--cor-branca);
   text-decoration: none;
-  margin: 0 1rem;
-  font-weight: 600;
+  font-size: 0.95rem;
   transition: opacity 0.3s ease;
 }
 
-.footer-nav a:hover {
+.footer-column a:hover {
   opacity: 0.8;
 }
 
-.social-icons {
-  margin-bottom: 1.5rem;
+.footer-column p {
+    margin-bottom: 0.5rem;
 }
 
-.social-icons a {
+.footer-column i {
+  margin-right: 8px;
   color: var(--cor-branca);
-  font-size: 1.5rem;
-  margin: 0 0.75rem;
-  transition: transform 0.3s ease, color 0.3s ease;
+  font-size: 1rem;
 }
 
-.social-icons a:hover {
-  transform: scale(1.2);
-  color: var(--cor-laranja-pastel);
+/* --- Linhas divisórias (apenas para desktop) --- */
+.footer-column:not(:last-child) {
+  border-right: 1px solid rgba(255, 255, 255, 0.5);
+  padding-right: 1.5rem;
 }
 
-.copyright {
-  font-size: 0.9rem;
-  opacity: 0.7;
-  margin-top: 2rem;
+.footer-column:not(:first-child) {
+  padding-left: 1.5rem;
+}
+
+/* --- Responsividade para o conteúdo do Footer (Mobile) --- */
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+    align-items: center; 
+    gap: 2.5rem;
+  }
+
+  .footer-column {
+    width: 100%;
+    border: none !important;
+    padding: 0 !important;
+  }
+}
+
+/* --- Linhas divisórias (apenas para desktop) --- */
+.footer-column:not(:last-child) {
+  border-right: 1px solid rgba(255, 255, 255, 0.5);
+  padding-right: 1.5rem;
+}
+
+.footer-column:not(:first-child) {
+  padding-left: 1.5rem;
+}
+
+
+/* --- Responsividade para o conteúdo do Footer (Mobile) --- */
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+    align-items: center; /* Centraliza as colunas empilhadas */
+    gap: 2.5rem; /* Aumenta o espaçamento vertical entre as seções */
+  }
+
+  .footer-column {
+    width: 100%;
+    /* Remove as bordas e paddings laterais no mobile */
+    border: none !important;
+    padding: 0 !important;
+  }
 }
 /* ==========================================================================
    MEDIA QUERIES - Estilos Responsivos
@@ -612,7 +727,12 @@ span.destaque-recomeco {
     padding-top: 4rem;
   }
   .hero-image-container {
-    position: absolute;
+  position: absolute;
+  right: 0;
+  bottom: -40px;
+  width: 650px;
+  max-width: none;
+  z-index: 10;
     bottom: -50px;
     right: -10%;
     width: 75%;
@@ -667,8 +787,10 @@ span.destaque-recomeco {
     text-align: center;
   }
   .hero-image-container img {
-    max-width: 80%;
-    height: auto;
+  width: 100%;
+  height: auto;
+  min-width: 350px;
+  max-width: 800px;
   }
   .btn-container {
     margin-top: 2rem;
@@ -721,5 +843,8 @@ span.destaque-recomeco {
   }
   .nav-link {
     padding: 8px 4px;
+  }
+  .about-text, .conclusao-about{
+    max-width: 300px;
   }
 }
