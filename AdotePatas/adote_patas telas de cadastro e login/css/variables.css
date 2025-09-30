@@ -1,0 +1,12 @@
+:root {
+  --cor-branca: #ffffff;
+  --cor-cinza-texto: #666662;
+  --cor-vermelho: #9b0000;
+  --cor-laranja-pastel: #dea796;
+  --cor-rosa-pastel: #ffc2c2;
+  --cor-laranja-claro: #f7f4f2;
+  --cor-rosa-escuro: #bf6964;
+  --cor-femea-simbolo: #e677ad;
+  --cor-macho-simbolo: #6da8e4;
+  --container-padding: clamp(1rem, 5vw, 2rem);
+}

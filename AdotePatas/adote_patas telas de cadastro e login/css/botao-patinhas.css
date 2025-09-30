@@ -1,0 +1,113 @@
+.btn-container {
+  /* Adicionando display: flex e justify-content: center para garantir que o contêiner
+     do botão esteja centralizado na div pai, se a div pai for flex ou tiver width: 100% */
+  display: flex; 
+  justify-content: center;
+  justify-self: center;
+  position: relative;
+}
+
+.adopt-btn {
+  position: relative; /* Essencial para o posicionamento dos filhos */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center; /* ESSENCIAL: Garante que o conteúdo (texto) seja centralizado horizontalmente */
+  /* Mantemos o padding para o tamanho */
+  padding: 1.2rem 3.5rem; 
+  background-color: #b92b2b; /* Um vermelho mais próximo da imagem */
+  color: #f0e9e9;
+  border-radius: 16px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem; 
+  text-transform: none; /* Remove o uppercase */
+  cursor: pointer;
+  margin-top: 2rem;
+  /* ESSENCIAL: Garante que nada vaze das bordas arredondadas */
+  overflow: hidden; 
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  
+
+  /* Sombra principal do botão para dar o efeito de flutuação */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19);
+}
+
+/* O texto do botão com efeito 3D */
+.adopt-btn span {
+  position: relative;
+  z-index: 2; /* O texto fica ACIMA do coração */
+  /* Removido o white-space: nowrap para evitar problemas de fluxo */
+  text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* O coração com efeito de baixo-relevo (inset) */
+.heart-background {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* MANTIDO: Centraliza o coração em relação ao seu próprio centro */
+  transform: translate(-50%, -50%); 
+  z-index: 1; /* Fica entre o fundo do botão e o texto */
+  
+  /* CORRIGIDO: Reduzindo o tamanho da fonte para 4.8rem para melhor ajuste com texto "Logar" */
+  font-size: 4.8rem; 
+  
+  line-height: 1;
+  color: #a82626; /* Cor base do coração, um pouco mais escura que o botão */
+  
+  /* Ajustando o text-shadow para um relevo mais suave */
+  text-shadow: 
+    1px 1px 2px rgba(0, 0, 0, 0.3),
+    -1px -1px 2px rgba(255, 255, 255, 0.15); /* Clareza sutil */
+}
+
+/* Efeitos de Interação */
+.adopt-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25), 0 10px 25px rgba(0, 0, 0, 0.22);
+}
+
+.adopt-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.adopt-btn:focus-visible {
+  outline: 3px solid #ffc2c2; 
+  outline-offset: 3px;
+}
+
+/* Efeito de patinhas ao redor do botão (MANTIDO, mas se não for usado, pode ser removido) */
+.paw-prints {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+  user-select: none;
+}
+
+
+/* Regras de Mídia para Responsividade do Coração */
+/* Reduzindo o coração de forma mais agressiva para telas menores */
+@media (max-width: 992px) {
+  .heart-background {
+    font-size: 4.3rem; /* Ajustado */
+  }
+}
+@media (max-width: 775px) {
+  .heart-background {
+    font-size: 3.8rem; /* Ajustado */
+  }
+}
+@media (max-width: 575px) {
+  .adopt-btn {
+      padding: 1rem 3rem;
+      font-size: 1.3rem;
+  }
+  .heart-background {
+    font-size: 3.3rem; /* Ajustado */
+  }
+}
