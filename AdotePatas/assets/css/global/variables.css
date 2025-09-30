@@ -1,12 +1,15 @@
 :root {
-    --cor-branca: #ffffff;
-    --cor-cinza-texto: #5C5C57;
-    --cor-vermelho: #9b0000;
-    --cor-laranja-pastel: #dea796;
-    --cor-rosa-pastel: #ffc2c2;
-    --cor-laranja-claro: #f7f4f2;
-    --cor-rosa-escuro: #bf6964;
-    --cor-femea-simbolo: #E677AD;
-    --cor-macho-simbolo: #6DA8E4;
-    --container-padding: clamp(1rem, 5vw, 2rem);
+  --cor-branca: #ffffff;
+  --cor-cinza-texto: #666662;
+  --cor-vermelho: #9b0000;
+  --cor-laranja-pastel: #dea796;
+  --cor-rosa-pastel: #ffc2c2;
+  --cor-laranja-claro: #f7f4f2;
+  --cor-rosa-escuro: #bf6964;
+  --cor-femea-simbolo: #e677ad;
+  --cor-macho-simbolo: #6da8e4;
+  --cor-verde-pastel: #628e6d;
+  --cor-rosa-claro: #d9a7a3;
+  --cor-vermelho-claro: #b46459;
+  --container-padding: clamp(1rem, 5vw, 2rem);
 }

@@ -5,592 +5,721 @@
 @import "../../global/global.css";
 
 * {
-    padding: 0;
-    margin: 0;
-    border: none;
-    box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  border: none;
+  box-sizing: border-box;
 }
 
 img {
-    user-select: none;
+  user-select: none;
 }
 
 body {
-    background-color: var(--cor-laranja-claro) !important;
-    overflow-x: hidden;
-    padding: 0;
+  background-color: var(--cor-laranja-claro) !important;
+  overflow-x: hidden;
+  padding: 0;
 }
 
 /* Cor de seleção de texto personalizada */
 ::selection {
-    background-color: var(--cor-rosa-escuro);
-    color: var(--cor-branca);
+  background-color: var(--cor-rosa-escuro);
+  color: var(--cor-branca);
 }
 
 .navbar {
-    margin-bottom: -160px;
-    background: transparent;
-    padding: 0.5rem 1rem;
-    transition: all 0.3s ease;
-    font-size: 2em;
-    font-weight: bold;
-    z-index: 10;
+  margin-bottom: -160px;
+  background: transparent;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+  font-size: 2em;
+  font-weight: bold;
+  z-index: 10;
 }
 
 .navbar-logo {
-    width: clamp(60px, 10vw, 80px);
-    height: clamp(60px, 10vw, 80px);
-    object-fit: contain;
-    user-select: none;
+  width: clamp(60px, 10vw, 80px);
+  height: clamp(60px, 10vw, 80px);
+  object-fit: contain;
+  user-select: none;
 }
 
 .navbar-scrolled {
-    background-color: var(--cor-branca);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    padding: 0.2rem 0;
+  background-color: var(--cor-branca);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 0.2rem 0;
 }
 
 .navbar-scrolled .navbar-logo {
-    width: clamp(55px, 10vw, 70px);
+  width: clamp(55px, 10vw, 70px);
 }
 
 .navbar-nav {
-    gap: 1.5rem;
-    align-items: center;
+  gap: 1.5rem;
+  align-items: center;
 }
 
 .nav-link {
-    font-weight: 800;
-    cursor: pointer;
-    position: relative;
-    padding: 10px 15px;
-    transition: color 0.3s ease;
-    display: flex;
-    align-items: center;
-    font-size: 5rem;
-    white-space: nowrap;
-    border-radius: 4px;
+  font-weight: 800;
+  cursor: pointer;
+  position: relative;
+  padding: 10px 15px;
+  transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+  font-size: 5rem;
+  white-space: nowrap;
+  border-radius: 4px;
 }
 
 .navlink {
-    color: var(--cor-cinza-texto);
+  color: var(--cor-cinza-texto);
 }
 
 .navlink::after {
-    content: '';
-    position: absolute;
-    bottom: 5px;
-    left: 15px;
-    width: calc(100% - 30px);
-    height: 2px;
-    background: var(--cor-rosa-escuro);
-    transform: scaleX(0);
-    transform-origin: center;
-    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  content: "";
+  position: absolute;
+  bottom: 5px;
+  left: 15px;
+  width: calc(100% - 30px);
+  height: 2px;
+  background: var(--cor-rosa-escuro);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .navlink:hover,
 .navlink:focus {
-    color: var(--cor-rosa-escuro) !important;
+  color: var(--cor-rosa-escuro) !important;
 }
 
 .navlink:hover::after,
 .navlink:focus::after {
-    transform: scaleX(1);
+  transform: scaleX(1);
 }
 
 .loginlink {
-    color: var(--cor-vermelho) !important;
-    position: relative;
-    margin-left: 1.5rem;
+  color: var(--cor-vermelho) !important;
+  position: relative;
+  margin-left: 1.5rem;
 }
 
 .loginlink::after {
-    content: '';
-    position: absolute;
-    bottom: 5px;
-    left: 15px;
-    width: calc(100% - 30px);
-    height: 2px;
-    background: var(--cor-vermelho);
-    transform: scaleX(0);
-    transform-origin: center;
-    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  content: "";
+  position: absolute;
+  bottom: 5px;
+  left: 15px;
+  width: calc(100% - 30px);
+  height: 2px;
+  background: var(--cor-vermelho);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .loginlink:hover,
 .loginlink:focus {
-    color: var(--cor-vermelho);
+  color: var(--cor-vermelho);
 }
 
 .loginlink:hover::after,
 .loginlink:focus::after {
-    transform: scaleX(1);
+  transform: scaleX(1);
 }
 
 .loginlink::before {
-    content: '|';
-    position: absolute;
-    left: -25%;
-    top: 45%;
-    transform: translateY(-50%);
-    color: var(--cor-cinza);
-    font-weight: 300;
-    font-size: 2.5rem;
+  content: "|";
+  position: absolute;
+  left: -25%;
+  top: 45%;
+  transform: translateY(-50%);
+  color: var(--cor-cinza);
+  font-weight: 300;
+  font-size: 2.5rem;
 }
 
 /* --- ESTILOS GERAIS DO HERO --- */
 .hero {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    width: 100%;
-    min-height: 100vh;
-    background-image: url("../../../../images/index/fundo-header.svg");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    align-items: center;
-    padding-top: 140px;
-    padding-bottom: 2rem;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  background-image: url("../../../../images/index/fundo-header.svg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  align-items: center;
+  padding-top: 140px;
+  padding-bottom: 2rem;
 }
 
 .hero .row {
-    position: relative;
+  position: relative;
 }
 
 .adote-patas {
-    font-family: "Kawaii RT";
-    font-size: clamp(1.7rem, 5.7vw, 4.9rem);
-    color: var(--cor-vermelho);
-    line-height: 1.1;
-    white-space: nowrap;
+  font-family: "Kawaii RT";
+  font-size: clamp(1.7rem, 5.7vw, 4.9rem);
+  color: var(--cor-vermelho);
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .adote-vidas {
-    font-family: "Kawaii RT";
-    font-size: clamp(1.7rem, 5.7vw, 4.9rem);
-    margin-bottom: 2rem;
-    color: var(--cor-rosa-escuro);
-    line-height: 1.1;
-    white-space: nowrap;
+  font-family: "Kawaii RT";
+  font-size: clamp(1.7rem, 5.7vw, 4.9rem);
+  margin-bottom: 2rem;
+  color: var(--cor-rosa-escuro);
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .hero-text-content p {
-    font-family: "Poppins", sans-serif;
-    font-size: 1.3rem;
-    line-height: 1.3;
-    color: var(--cor-cinza);
-    opacity: 0.7;
-    max-width: 600px;
-    margin-bottom: 2rem;
+  font-family: "Poppins", sans-serif;
+  font-size: 1.3rem;
+  line-height: 1.3;
+  color: var(--cor-cinza);
+  opacity: 0.7;
+  max-width: 600px;
+  margin-bottom: 1rem;
 }
 
 /* --- NOVA IMPLEMENTAÇÃO DO FUNDO --- */
 .image-background {
-    position: relative;
-    z-index: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .image-background::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url("../../../../images/index/fundo-header-mobile.svg");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    opacity: 0.18;
-    z-index: -1;
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("../../../../images/index/fundo-section.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.4;
+  z-index: -1;
 }
 
 /* ==========================================================================
    SEÇÃO DE CARDS
    ========================================================================== */
 .cards-section {
-    display: flex;
-    align-items: center;
-    min-height: 60vh;
+  display: flex;
+  align-items: center;
+  min-height: 60vh;
 }
 
 .card-item {
-    aspect-ratio: 1 / 1;
-    width: 100%;
-    max-width: 250px;
-    margin: 0 auto;
-    cursor: pointer;
-    background-color: var(--cor-rosa-escuro, #bf6464);
-    color: var(--cor-branca);
-    border-radius: 24px;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
-    position: relative;
-    overflow: hidden;
-    opacity: 0.55;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    transition: transform 0.8s ease, box-shadow 0.5s ease;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  max-width: 220px; /* Aumentado de 180px para 220px */
+  margin: 0 auto;
+  cursor: pointer;
+  background-color: var(--cor-rosa-escuro, #bf6464);
+  color: var(--cor-branca);
+  border-radius: 20px;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px,
+    rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
+  position: relative;
+  overflow: hidden;
+  opacity: 0.55;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem; /* Aumentado de 0.7rem para um respiro maior */
+  transition: transform 0.8s ease, box-shadow 0.5s ease;
 }
 
-/* Animação de brilho ao passar o mouse */
+/* Animação de brilho ao passar o mouse (mantida) */
 .card-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -150%;
-    width: 70%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-    transform: skewX(-30deg);
-    transition: left 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+  transform: skewX(-30deg);
+  transition: left 0.7s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .card-item:hover {
-    box-shadow: rgba(0, 0, 0, 0.2) 0px 20px 30px;
-    transform: scale(1.05);
+  box-shadow: rgba(0, 0, 0, 0.2) 0px 20px 30px;
+  transform: scale(1.05);
 }
 
 .card-item:hover::before {
-    left: 150%;
+  left: 150%;
 }
 
 .card-icon {
-    margin-bottom: 1.5rem;
-    transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+  margin-bottom: 1.8rem; /* Aumentado de 1.5rem para melhor espaçamento */
+  transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .card-item:hover .card-icon {
-    transform: scale(1.2);
+  transform: scale(1.2);
 }
 
 .card-icon i {
-    font-size: clamp(50px, 12vw, 70px);
-    color: var(--cor-branca);
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+  /* Aumentei o clamp para permitir que o ícone cresça um pouco mais */
+  font-size: clamp(60px, 12vw, 80px);
+  color: var(--cor-branca);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
 }
 
 .card-icon img {
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
-    user-select: none;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+  width: 90px; /* Aumentado de 80px */
+  height: 90px; /* Aumentado de 80px */
+  object-fit: contain;
+  user-select: none;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
 }
 
 .card-item h3 {
-    font-family: "Poppins", sans-serif;
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin: 0;
-    color: var(--cor-branca);
-    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  font-family: "Poppins", sans-serif;
+  font-size: 2rem; /* Aumentado de 2.5rem */
+  font-weight: 700;
+  margin: 0;
+  color: var(--cor-branca);
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
 /* ==========================================================================
    SEÇÃO PETS PARA ADOÇÃO
    ========================================================================== */
 .pets-section {
-    padding: 2rem 0 4rem 0;
+  padding: 2rem 0 4rem 0;
 }
 
-.titulo-adocao, .titulo-about {
-    font-family: "Poppins", sans-serif;
-    font-size: clamp(2.5rem, 5vw, 3.5rem);
-    color: var(--cor-cinza-texto);
-    font-weight: 700;
-    margin-bottom: 3rem;
-    text-shadow: 0px 2px 4px rgba(0,0,0,0.05);
+.titulo-adocao,
+.titulo-about {
+  font-family: "Poppins", sans-serif;
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  color: var(--cor-cinza-texto);
+  font-weight: 700;
+  margin-bottom: 3rem;
+  text-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
 
 /* =====================
    CARD DE PET
    ===================== */
 .pet-card {
-    background-color: var(--card-bg);
-    border-radius: 20px;
-    box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: box-shadow 0.3s ease;
-    cursor: pointer;
-    text-align: center;
+  background-color: var(--card-bg);
+  border-radius: 20px;
+  box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+  cursor: pointer;
+  text-align: center;
 }
 
 .pet-card:hover {
-    box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.15);
 }
 
 /* Área da imagem com recorte */
 .pet-card-img {
-    width: 100%;
-    aspect-ratio: 4 / 2;
-    position: relative;
-    overflow: hidden;
+  width: 100%;
+  aspect-ratio: 4 / 2;
+  position: relative;
+  overflow: hidden;
 }
 
 .pet-card-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    clip-path: ellipse(100% 95% at 50% 0%);
-    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  clip-path: ellipse(100% 95% at 50% 0%);
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .pet-card:hover .pet-card-img img {
-    transform: scale(1.08);
+  transform: scale(1.08);
 }
 
 /* Corpo do card */
 .pet-card-body {
-    padding: 1rem 1.5rem 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
+  padding: 1rem 1.5rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
 }
 
 /* Nome do pet */
 .pet-name {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    font-size: 1.3rem;
-    color: var(--cor-cinza-texto);
-    margin: 0;
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--cor-cinza-texto);
+  margin: 0;
 }
 
 /* Ícones */
 .pet-gender-female,
 .pet-gender-male,
 .pet-like {
-    font-size: 1.2rem;
+  font-size: 1.2rem;
 }
 
 .pet-gender-female {
-    color: var(--cor-femea-simbolo);
+  color: var(--cor-femea-simbolo);
 }
 
 .pet-gender-male {
-    color: var(--cor-macho-simbolo);
+  color: var(--cor-macho-simbolo);
 }
 
 .pet-like {
-    color: var(--cor-vermelho);
+  color: var(--cor-vermelho);
 }
 /* ==========================================================================
    SWIPER - Versão com posicionamento manual
    ========================================================================== */
 
 .swiper {
-    width: 100%;
-    max-width: 280px; /* Ainda menor */
-    height: 370px;
-    margin: 0 auto;
-    overflow: visible; /* Permite que os cards saiam um pouco do container */
+  width: 100%;
+  max-width: 440px; /* Aumentado de 360px para 440px */
+  height: 100%;
+  overflow: visible;
+  user-select: none;
 }
 
 .swiper-wrapper {
-    align-items: center;
+  align-items: center;
 }
 
 .swiper-slide {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: bold;
-    color: #fff;
-    box-shadow: rgba(0, 0, 0, 0.15) 0px 8px 20px -3px;
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    border: solid 6px var(--cor-rosa-escuro);
-    
-    /* Tamanho fixo menor */
-    width: 260px !important;
-    height: 350px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 8px 20px -3px;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: solid 10px var(--cor-rosa-escuro);
+  /* Tamanho fixo maior */
+  width: 420px !important; /* Aumentado de 260px */
+  height: 560px !important; /* Aumentado de 350px */
 }
 
 /* Estado base - Cards laterais mais discretos */
 .swiper-slide:not(.swiper-slide-active) {
-    transform: scale(0.8);
-    opacity: 0.6;
+  transform: scale(0.8);
+  opacity: 0.6;
 }
 
 /* Slide ANTERIOR - Esquerda */
 .swiper-slide-prev {
-    opacity: 0.7;
+  opacity: 0.7;
 }
 
 /* Slide SEGUINTE - Direita */
 .swiper-slide-next {
-    opacity: 0.7;
+  opacity: 0.7;
 }
 
 /* Slide ATIVO - Centro e destaque */
 .swiper-slide-active {
-    opacity: 1;
-    z-index: 20;
-    box-shadow: rgba(0, 0, 0, 0.25) 0px 15px 35px -8px;
+  opacity: 1;
+  z-index: 20;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 15px 35px -8px;
 }
 
 /* Background images */
 .swiper-slide:nth-child(1n) {
-    background-image: url("../../../../images/index/cacau.webp");
+  background-image: url("../../../../images/index/cacau.webp");
 }
 
 .swiper-slide:nth-child(2n) {
-    background-image: url("../../../../images/index/zeus.webp");
+  background-image: url("../../../../images/index/zeus.webp");
 }
 
 .swiper-slide:nth-child(3n) {
-    background-image: url("../../../../images/index/cacau.webp");
+  background-image: url("../../../../images/index/cacau.webp");
 }
 
+/* ==========================================================================
+   Texto de como nós surgimos
+   ========================================================================== */
 
+.about-text {
+  font-size: 2rem;
+  line-height: 1.2;
+  font-family: "Poppins", sans-serif;
+  color: var(--cor-cinza-texto);
+}
+.conclusao-about {
+  font-size: 2rem;
+  line-height: 1.4;
+  font-family: "Poppins", sans-serif;
+  color: var(--cor-cinza-texto);
+  font-weight: bold;
+}
+.destaque-amor,
+.destaque-confianca,
+.destaque-recomeco {
+  display: inline;
+}
+.conclusao-about .destaque-amor,
+.conclusao-about .destaque-confianca,
+.conclusao-about .destaque-recomeco {
+  font-weight: normal;
+}
+span.destaque-amor {
+  font-family: "Kawaii RT";
+  color: var(--cor-vermelho); /* Tom vibrante de vermelho */
+}
+span.destaque-confianca {
+  font-family: "Kawaii RT";
+  color: var(--cor-rosa-escuro); /* Tom vibrante de rosa escuro */
+}
+span.destaque-recomeco {
+  font-family: "Kawaii RT";
+  color: var(--cor-verde-pastel); /* Tom vibrante de rosa pastel */
+}
+
+/* ==========================================================================
+   FOOTER - Rodapé com Efeito Clip-Path
+   ========================================================================== */
+/* ALTERNATIVA COM POLYGON PARA MAIS CONTROLE */
+.site-footer {
+  position: relative;
+  background-color: var(--cor-vermelho-claro);
+  color: var(--cor-branca);
+  text-align: center;
+  /* Aplica a concavidade EXTRA profunda */
+  -webkit-clip-path: url(#footerConcavityExtraDeep);
+  clip-path: url(#footerConcavityExtraDeep);
+  padding: 10rem 2rem 3rem; /* Aumentei o padding-top para acomodar a concavidade mais profunda */
+  opacity: 0.63;
+  z-index: 1;
+  margin-top: -4rem; /* Aumentei a margem negativa para melhor sobreposição */
+}
+
+/* Versão com concavidade mais suave */
+.site-footer.shallow {
+  -webkit-clip-path: url(#footerConcavityShallow);
+  clip-path: url(#footerConcavityShallow);
+}
+
+/* Versão com concavidade média */
+.site-footer.deep {
+  -webkit-clip-path: url(#footerConcavityDeep);
+  clip-path: url(#footerConcavityDeep);
+}
+
+/* NOVA: Versão com concavidade padrão (mais funda que a original) */
+.site-footer.default {
+  -webkit-clip-path: url(#footerConcavity);
+  clip-path: url(#footerConcavity);
+}
+
+.footer-logo {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 1rem;
+  opacity: 0.9;
+}
+
+.footer-content p {
+  margin: 0 0 1.5rem;
+  font-family: "Poppins", sans-serif;
+  font-size: 1.1rem;
+  opacity: 0.8;
+}
+
+.footer-nav {
+  margin-bottom: 1.5rem;
+}
+
+.footer-nav a {
+  color: var(--cor-branca);
+  text-decoration: none;
+  margin: 0 1rem;
+  font-weight: 600;
+  transition: opacity 0.3s ease;
+}
+
+.footer-nav a:hover {
+  opacity: 0.8;
+}
+
+.social-icons {
+  margin-bottom: 1.5rem;
+}
+
+.social-icons a {
+  color: var(--cor-branca);
+  font-size: 1.5rem;
+  margin: 0 0.75rem;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.social-icons a:hover {
+  transform: scale(1.2);
+  color: var(--cor-laranja-pastel);
+}
+
+.copyright {
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin-top: 2rem;
+}
 /* ==========================================================================
    MEDIA QUERIES - Estilos Responsivos
    ========================================================================== */
 
 @media (min-width: 1500px) {
-    .navbar {
-        margin-bottom: -180px;
-    }
-    .adote-patas {
-        margin-top: 5rem;
-        font-size: clamp(2rem, 8vw, 6.5rem);
-    }
-    .adote-vidas {
-        font-size: clamp(2rem, 8vw, 6.5rem);
-    }
+  .navbar {
+    margin-bottom: -180px;
+  }
 }
 
 @media (min-width: 992px) {
-    .hero {
-        align-items: flex-start;
-    }
-    .hero .row {
-        min-height: 70vh;
-    }
-    .hero-text-content {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        text-align: left;
-        padding-top: 4rem;
-    }
-    .hero-image-container {
-        position: absolute;
-        bottom: -50px;
-        right: -10%;
-        width: 75%;
-        max-width: 700px;
-    }
+  .hero {
+    align-items: flex-start;
+  }
+  .hero .row {
+    min-height: 70vh;
+  }
+  .hero-text-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    padding-top: 4rem;
+  }
+  .hero-image-container {
+    position: absolute;
+    bottom: -50px;
+    right: -10%;
+    width: 75%;
+    max-width: 700px;
+  }
 }
 
 @media (max-width: 991.98px) {
-    .navbar {
-        margin-bottom: -170px;
-    }
-    .navbar-nav {
-        gap: 2rem;
-        flex-direction: row !important;
-        align-items: center;
-    }
-    .nav-link {
-        font-size: 1rem !important;
-        padding: 8px 6px;
-        justify-content: flex-end;
-    }
-    .loginlink {
-        margin-left: 0;
-    }
-    .loginlink::before {
-        font-size: 1.8rem;
-        left: -10px;
-    }
-    .hero {
-        margin-top: 4rem;
-        padding-top: 120px;
-        padding-bottom: 4rem;
-        background-image: url("../../../../images/index/fundo-header-mobile.svg");
-    }
-    .hero-text-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-    .adote-patas, .adote-vidas {
-        font-size: clamp(3rem, 6vw, 5.9rem);
-    }
-    .hero-text-content p {
-        font-size: 1rem;
-        max-width: 90%;
-    }
-    .hero-image-container {
-        margin-top: 2rem;
-        text-align: center;
-    }
-    .hero-image-container img {
-        max-width: 80%;
-        height: auto;
-    }
-    .btn-container {
-        margin-top: 2rem;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
+  .navbar {
+    margin-bottom: -170px;
+  }
+  .navbar-nav {
+    gap: 2rem;
+    flex-direction: row !important;
+    align-items: center;
+  }
+  .nav-link {
+    font-size: 1rem !important;
+    padding: 8px 6px;
+    justify-content: flex-end;
+  }
+  .loginlink {
+    margin-left: 0;
+  }
+  .loginlink::before {
+    font-size: 1.8rem;
+    left: -10px;
+  }
+  .hero {
+    margin-top: 4rem;
+    padding-top: 120px;
+    padding-bottom: 4rem;
+    background-image: url("../../../../images/index/fundo-header-mobile.jpg");
+    background-position: center;
+  }
+  .hero-text-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .adote-patas,
+  .adote-vidas {
+    font-size: clamp(2.6rem, 6vw, 5.9rem);
+  }
+  .hero-text-content p {
+    font-size: 1rem;
+    max-width: 90%;
+  }
+  .hero-image-container {
+    margin-top: 2rem;
+    text-align: center;
+  }
+  .hero-image-container img {
+    max-width: 80%;
+    height: auto;
+  }
+  .btn-container {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
 
 /* Ajustes para manter os cards em linha e diminuir o conteúdo */
 @media (max-width: 768px) {
-    .card-item {
-        padding: 0.5rem;
-    }
-    .card-icon i {
-        font-size: 2.5rem;
-    }
-    .card-icon img {
-        width: 40px;
-        height: 40px;
-    }
-    .card-item h3 {
-        font-size: 1.2rem;
-    }
+  .card-item {
+    max-width: 140px;
+    padding: 0.4rem;
+  }
+  .card-icon i {
+    font-size: 2.5rem;
+  }
+  .card-icon img {
+    width: 40px;
+    height: 40px;
+  }
+  .card-item h3 {
+    font-size: 1rem;
+  }
 }
 
 @media (max-width: 576px) {
-    .card-icon {
-        margin-bottom: 0.8rem;
-    }
-    .card-icon i {
-        font-size: 2rem;
-    }
-    .card-icon img {
-        width: 35px;
-        height: 35px;
-    }
-    .card-item h3 {
-        font-size: 1rem;
-    }
+  .card-icon {
+    margin-bottom: 0.8rem;
+  }
+  .card-icon i {
+    font-size: 2rem;
+  }
+  .card-icon img {
+    width: 35px;
+    height: 35px;
+  }
+  .card-item h3 {
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 380px) {
-    .loginlink::before {
-        display: none;
-    }
-    .navbar-nav {
-        gap: 0.5rem;
-    }
-    .nav-link {
-        padding: 8px 4px;
-    }
+  .loginlink::before {
+    display: none;
+  }
+  .navbar-nav {
+    gap: 0.5rem;
+  }
+  .nav-link {
+    padding: 8px 4px;
+  }
 }

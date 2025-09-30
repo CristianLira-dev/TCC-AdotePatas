@@ -1,4 +1,3 @@
-
 .btn-container {
   position: relative;
   display: inline-block;
@@ -13,15 +12,15 @@
   background-color: #b92b2b; /* Um vermelho mais próximo da imagem */
   color: #f0e9e9;
   border-radius: 16px;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-weight: 700;
-  font-size: clamp(1.5rem, 4vw, 2.2rem); /* Fonte grande e responsiva */
+  font-size: clamp(1.3rem, 4vw, 2.2rem); /* Fonte grande e responsiva */
   text-transform: none; /* Remove o uppercase */
   cursor: pointer;
   margin-top: 2rem;
   overflow: hidden; /* Garante que nada vaze das bordas arredondadas */
   transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-  
+
   /* Sombra principal do botão para dar o efeito de flutuação */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19);
 }
@@ -44,8 +43,8 @@
   font-size: 4.2rem; /* Menor */
   line-height: 1;
   color: #a82626; /* Cor base do coração, um pouco mais escura que o botão */
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3), 
-               -1px -1px 2px rgba(255, 255, 255, 0.05);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3),
+    -1px -1px 2px rgba(255, 255, 255, 0.05);
 }
 
 /* Efeitos de Interação */
@@ -60,9 +59,9 @@
 }
 
 .adopt-btn:focus-visible {
-  outline: 3px solid var(--cor-rosa-pastel);
+  outline: 3px solid var(--cor-rosa-pastel), #ffc2c2;
   outline-offset: 3px;
-}             
+}
 
 /* Efeito de patinhas ao redor do botão */
 .paw-prints {
@@ -88,7 +87,7 @@
   line-height: 1;
   color: #a82626;
   text-shadow: 1px 2px 2px rgba(255, 255, 255, 0.986),
-  -2px -2px 3px rgba(0, 0, 0, 0.363);
+    -2px -2px 3px rgba(0, 0, 0, 0.363);
 }
 
 .adopt-btn span {
@@ -139,19 +138,19 @@
 
 @media (max-width: 992px) {
   .heart-background {
-  margin-top: 3px;
-  font-size: 6rem;
+    margin-top: 3px;
+    font-size: 6rem;
   }
 }
 @media (max-width: 775px) {
   .heart-background {
-  margin-top: 3px;
-  font-size: 5.5rem;
+    margin-top: 3px;
+    font-size: 5.5rem;
   }
 }
 @media (max-width: 575px) {
   .heart-background {
-  margin-top: 3px;
-  font-size: 5rem;
+    margin-top: 3px;
+    font-size: 5rem;
   }
 }
