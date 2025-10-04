@@ -8,7 +8,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 1.2rem 3.5rem; /* Padding para dar tamanho, mais flexível que width/height */
+  padding: 1rem 3rem; /* Padding para dar tamanho, mais flexível que width/height */
   background-color: #b92b2b; /* Um vermelho mais próximo da imagem */
   color: #f0e9e9;
   border-radius: 16px;
