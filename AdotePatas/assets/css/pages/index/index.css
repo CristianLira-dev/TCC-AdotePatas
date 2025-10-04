@@ -2,6 +2,8 @@
    IMPORTS - Carregando todos os arquivos de estilo parciais
    ========================================================================== */
 @import "./partials/botao-patinhas.css";
+@import "./partials/cachorro-andando.css";
+@import "./partials/loading-index.css";
 @import "../../global/global.css";
 
 * {
@@ -186,18 +188,18 @@ body {
   margin-bottom: 1rem;
 }
 
-  .hero-image-container img {
+.hero-image-container img {
   position: absolute;
   right: 0;
   bottom: -40px;
   width: 650px;
   max-width: none;
   z-index: 10;
-    bottom: -160px;
-    right: -16%;
-    width: 110%;
-    max-width: 1200px;
-  }
+  bottom: -160px;
+  right: -16%;
+  width: 110%;
+  max-width: 1200px;
+}
 
 @media (max-width: 1500px) {
   .hero-image-container img {
@@ -213,9 +215,6 @@ body {
     width: 110%;
   }
 }
-
-
-
 
 .image-background::before {
   content: "";
@@ -441,19 +440,19 @@ body {
   font-size: 16px;
   font-weight: bold;
   color: #fff;
-  
+
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   border: solid 8px var(--cor-rosa-escuro); /* Borda um pouco menor em mobile */
-  
+
   /* --- PONTO CRÍTICO: Removendo tamanhos fixos --- */
   width: 100%; /* O slide agora ocupa 100% do container .swiper */
   aspect-ratio: 420 / 560; /* Mantém a proporção original (3:4) sem fixar a altura */
-  
+
   box-shadow: rgba(0, 0, 0, 0.15) 0px 8px 20px -3px;
-  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
-              opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* --- Efeitos Visuais dos Slides (Ativo e Inativos) --- */
@@ -479,7 +478,6 @@ body {
   background-image: url("../../../../images/index/kitty.jpg");
 }
 
-
 /* ==========================================================================
    NOVO: Bloco de Responsividade para o Swiper
    ========================================================================== */
@@ -490,7 +488,7 @@ body {
     max-width: 380px; /* Aumentamos o tamanho do carrossel em tablets */
   }
   .swiper-slide {
-     border-width: 10px; /* Retornamos a borda para o tamanho original */
+    border-width: 10px; /* Retornamos a borda para o tamanho original */
   }
 }
 
@@ -565,9 +563,12 @@ span.destaque-recomeco {
 }
 
 .site-footer::before {
-  content: '';
+  content: "";
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   pointer-events: none;
 }
 
@@ -595,11 +596,11 @@ span.destaque-recomeco {
 .footer-content {
   display: flex;
   justify-content: space-between;
-  
+
   /* --- CORREÇÃO APLICADA AQUI --- */
   /* De flex-start para stretch, para igualar a altura das colunas */
-  align-items: stretch; 
-  
+  align-items: stretch;
+
   max-width: 1100px;
   gap: 2rem;
   text-align: left;
@@ -642,7 +643,7 @@ span.destaque-recomeco {
 }
 
 .footer-column p {
-    margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .footer-column i {
@@ -666,7 +667,7 @@ span.destaque-recomeco {
   .footer-content {
     flex-direction: column;
     text-align: center;
-    align-items: center; 
+    align-items: center;
     gap: 2.5rem;
   }
 
@@ -686,7 +687,6 @@ span.destaque-recomeco {
 .footer-column:not(:first-child) {
   padding-left: 1.5rem;
 }
-
 
 /* --- Responsividade para o conteúdo do Footer (Mobile) --- */
 @media (max-width: 768px) {
@@ -729,12 +729,12 @@ span.destaque-recomeco {
     padding-top: 4rem;
   }
   .hero-image-container {
-  position: absolute;
-  right: 0;
-  bottom: -40px;
-  width: 650px;
-  max-width: none;
-  z-index: 10;
+    position: absolute;
+    right: 0;
+    bottom: -40px;
+    width: 650px;
+    max-width: none;
+    z-index: 10;
     bottom: -50px;
     right: -10%;
     width: 75%;
@@ -789,10 +789,10 @@ span.destaque-recomeco {
     text-align: center;
   }
   .hero-image-container img {
-  width: 100%;
-  height: auto;
-  min-width: 350px;
-  max-width: 800px;
+    width: 100%;
+    height: auto;
+    min-width: 350px;
+    max-width: 800px;
   }
   .btn-container {
     margin-top: 2rem;
@@ -846,7 +846,8 @@ span.destaque-recomeco {
   .nav-link {
     padding: 8px 4px;
   }
-  .about-text, .conclusao-about{
+  .about-text,
+  .conclusao-about {
     max-width: 300px;
   }
 }

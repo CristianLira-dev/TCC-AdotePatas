@@ -1,0 +1,24 @@
+.cachorro {
+  width: 100%;
+  height: 200px;
+  user-select: none;
+}
+
+/* Animação do cachorro andando */
+.dog-walking {
+  animation: walk 6s linear infinite;
+}
+
+@keyframes walk {
+  /* No início, o cachorro está completamente fora da tela, à esquerda */
+  0% {
+    /* -100% o tira da tela, -150px garante que qualquer que seja o tamanho dele, ele suma */
+    transform: translateX(-200px);
+  }
+
+  /* No final, ele andou a largura inteira da tela e sumiu à direita */
+  100% {
+    /* 100vw é a largura total da tela. Ele vai parar exatamente na borda direita. */
+    transform: translateX(100vw);
+  }
+}
