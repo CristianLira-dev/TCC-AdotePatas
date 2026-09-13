@@ -137,6 +137,19 @@ if (!defined('ADOTE_PATAS_ROUTING_LOADED')) {
             $buffer = str_replace($legacy, $clean, $buffer);
         }
 
+        // Directory routes must include the trailing slash on form actions.
+        // Without it Apache redirects /login -> /login/ and a POST may be converted
+        // to GET, discarding credentials and registration data.
+        $buffer = preg_replace_callback(
+            '~(<form\b[^>]*\baction=)(["\'])(login|cadastro|cadastro-ong|perfil|pets|chat|cadastrar-pet)\2~i',
+            static function (array $match): string {
+                $route = strtolower($match[3]) . '/';
+                $url = htmlspecialchars(adotePatasUrl($route), ENT_QUOTES, 'UTF-8');
+                return $match[1] . $match[2] . $url . $match[2];
+            },
+            $buffer
+        );
+
         $buffer = preg_replace('~pet-detalhe/([0-9]+)/?~', 'pet-detalhe/?id=$1', $buffer);
         $buffer = preg_replace('~formulario/([0-9]+)/?~', 'formulario-adocao/?id=$1', $buffer);
         $buffer = preg_replace('~chat/([0-9]+)/?~', 'chat/?id=$1', $buffer);
