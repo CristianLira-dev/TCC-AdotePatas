@@ -21,7 +21,7 @@ if ($password === false) {
     $password = '';
 }
 
-$apiTinyMCE = getenv('TINYMCE_API_KEY') ?: 'h8krho8x5gu4wxlvavexdy4hb45bm5oq457o94fm0k4o6l07';
+$apiTinyMCE = getenv('TINYMCE_API_KEY');
 
 try {
     $dsn = "mysql:host={$servername};port={$port};dbname={$dbname};charset=utf8mb4";
