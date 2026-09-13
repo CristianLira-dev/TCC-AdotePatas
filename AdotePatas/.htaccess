@@ -1,53 +1,11 @@
-# Ativa o motor de reescrita de URL do Apache
-RewriteEngine On
+# As URLs agora usam diretórios com index.php; não há regras de reescrita.
 
-# --- AUTO-DETECÇÃO DE AMBIENTE ---
+# Bloqueia arquivos ocultos de acesso direto.
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
 
-
-# Se NAO for localhost (ou seja, em producao), a base é /AdotePatas/
-RewriteCond %{HTTP_HOST} !localhost$ [NC]
-RewriteBase /AdotePatas/
-
-
-RewriteCond %{HTTP_HOST} localhost$ [NC]
-RewriteBase /TCC-AdotePatas/AdotePatas/
-# --- FIM DA AUTO-DETECÇÃO ---
-
-# --- REGRAS DE SEGURANÇA ---
-# Protege arquivos sensíveis de acesso direto
+# Impede acesso direto ao arquivo de conexão.
 <Files "conexao.php">
     Require all denied
 </Files>
-<Files ".htaccess">
-    Require all denied
-</Files>
-
-# --- REGRAS DE URL AMIGÁVEL (REGRAS DE "ALIAS") ---
-
-# Remove "index.php" da URL
-RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.php\ HTTP/
-RewriteRule ^index.php$ ./ [R=301,L] # Redireciona para a base
-
-# URLs amigáveis para autenticacao.php
-RewriteRule ^login/?$ autenticacao.php?tab=login [NC,L]
-RewriteRule ^cadastro/?$ autenticacao.php?tab=cadastro_usuario [NC,L]
-RewriteRule ^cadastro-ong/?$ autenticacao.php?tab=cadastro_ong [NC,L]
-
-# URL amigável para o cadastro de pet
-RewriteRule ^cadastrar-pet/?$ cadastrar-pet.php [NC,L]
-
-# [REGRA AJUSTADA]
-# /pets -> pets-adocao.php
-# Esta regra também vai funcionar para /pets?alguma=coisa
-RewriteRule ^pets/?$ pets-adocao.php [NC,L]
-RewriteRule ^pet-detalhe/([0-9]+)/?$ pet-detalhe.php?id=$1   [NC,L]
-
-# [REGRA AJUSTADA]
-# /perfil -> perfil.php
-# Esta regra captura /perfil e passa automaticamente qualquer
-# query string (como ?page=meus-pets) para o perfil.php.
-RewriteRule ^perfil/?$ perfil.php [NC,L]
-RewriteRule ^sobre-nos/?$ Sobre-nos.php [NC,L]  
-RewriteRule ^formulario/([0-9]+)/?$ formulario-adocao.php?id=$1 [NC,L]
-RewriteRule ^chat/?$ chat.php [NC,L]
-RewriteRule ^chat/([0-9]+)/?$ chat.php?id=$1 [NC,L]
