@@ -8,6 +8,6 @@
   };
 
   loadScript('assets/js/pages/chat/media-receipts-core.js?v=20260914-1', () => {
-    loadScript('assets/js/pages/chat/attachment-viewer.js?v=20260914-1');
+    loadScript('assets/js/pages/chat/attachment-viewer.js?v=20260914-2');
   });
 })();
