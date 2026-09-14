@@ -2,6 +2,12 @@
 
 define('ADOTE_PATAS_ROUTE_WRAPPER', true);
 require_once dirname(__DIR__) . '/route-bootstrap.php';
+require_once dirname(__DIR__) . '/conexao.php';
+
+// O chat legado reutiliza os mesmos placeholders nomeados mais de uma vez
+// nas consultas de conversa. Habilitamos emulação apenas nesta rota para
+// manter essas queries compatíveis sem alterar o comportamento global do PDO.
+$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
 
 ob_start();
 require dirname(__DIR__) . '/chat.php';
