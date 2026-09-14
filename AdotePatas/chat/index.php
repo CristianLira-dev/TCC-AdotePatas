@@ -7,6 +7,28 @@ ob_start();
 require dirname(__DIR__) . '/chat.php';
 $html = ob_get_clean();
 
+// O chat legado ainda pode gerar caminhos locais com base em SERVER_NAME.
+// Na rota por diretório, normaliza tudo para a base real calculada pelo roteamento.
+$legacyLocalBase = '/TCC-AdotePatas/AdotePatas/';
+if (ADOTE_PATAS_BASE_URL !== $legacyLocalBase) {
+    $html = str_replace($legacyLocalBase, ADOTE_PATAS_BASE_URL, $html);
+}
+
+// Garante explicitamente o caminho correto dos assets principais do chat.
+$html = preg_replace(
+    '~href="[^"]*assets/css/pages/chat/chat\.css"~',
+    'href="' . htmlspecialchars(ADOTE_PATAS_BASE_URL, ENT_QUOTES, 'UTF-8') . 'assets/css/pages/chat/chat.css"',
+    $html,
+    1
+);
+
+$html = preg_replace(
+    '~src="[^"]*assets/js/pages/chat/file-size-upload\.js"~',
+    'src="' . htmlspecialchars(ADOTE_PATAS_BASE_URL, ENT_QUOTES, 'UTF-8') . 'assets/js/pages/chat/file-size-upload.js"',
+    $html,
+    1
+);
+
 // Corrige o endpoint de polling para o nome real do arquivo.
 $html = str_replace('buscar_mensagens.php', 'buscar-mensagens.php', $html);
 
