@@ -39,7 +39,7 @@ if (!isset($_SESSION['profile_photo_csrf'])) {
 
 $csrfToken = $_SESSION['profile_photo_csrf'];
 $fotoUrl = $fotoPerfil ? $baseUrl . ltrim($fotoPerfil, '/') : null;
-$endpointUrl = $baseUrl . 'atualizar-foto-perfil.php';
+$endpointUrl = $baseUrl . 'atualizar-foto-perfil/';
 
 if ($fotoUrl) {
     $sidebarPhoto = '<img src="' . htmlspecialchars($fotoUrl, ENT_QUOTES, 'UTF-8') . '" alt="Foto de perfil" class="sidebar-profile-photo" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline-block\';"><i class="fa-regular fa-circle-user sidebar-profile-icon" style="display:none"></i>';
