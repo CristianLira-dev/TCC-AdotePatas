@@ -20,6 +20,19 @@ $baseUrl = ADOTE_PATAS_BASE_URL;
 $fotoPerfil = null;
 $paginaAtual = $_GET['page'] ?? 'perfil';
 
+// Usa uma versão fixa do player para evitar mudanças inesperadas no @latest.
+$html = str_replace(
+    'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
+    'https://unpkg.com/@lottiefiles/lottie-player@2.0.12/dist/lottie-player.js',
+    $html
+);
+
+// As rotas por diretório podem fazer o navegador resolver incorretamente o caminho
+// relativo da pasta com acento. Normalizamos todos os Lotties para a raiz do site.
+$lottieBaseUrl = $baseUrl . 'anima%C3%A7%C3%B5es/';
+$html = str_replace('src="animações/', 'src="' . $lottieBaseUrl, $html);
+$html = str_replace("src='animações/", "src='" . $lottieBaseUrl, $html);
+
 if (isset($_SESSION['user_id'], $_SESSION['user_tipo']) && in_array($_SESSION['user_tipo'], ['usuario', 'ong'], true)) {
     try {
         $table = $_SESSION['user_tipo'] === 'usuario' ? 'usuario' : 'ong';
@@ -49,6 +62,27 @@ if ($fotoUrl) {
         $html
     );
 }
+
+// Este estilo precisa existir em todas as abas do perfil, não apenas em "Meu Perfil".
+$sharedStyles = <<<'CSS'
+<style id="profile-route-shared-styles">
+.sidebar-header .sidebar-profile-photo{
+    width:72px;
+    height:72px;
+    aspect-ratio:1 / 1;
+    border-radius:50%;
+    object-fit:cover;
+    object-position:center;
+    border:3px solid var(--cor-rosa-pastel,#f0c9c4);
+    display:inline-block;
+    flex-shrink:0;
+}
+@media(max-width:991.98px){
+    .sidebar-header .sidebar-profile-photo{width:64px;height:64px}
+}
+</style>
+CSS;
+$html = str_replace('</head>', $sharedStyles . "\n</head>", $html);
 
 if ($paginaAtual === 'perfil' && in_array($_SESSION['user_tipo'] ?? '', ['usuario', 'ong'], true)) {
     $avatarMarkup = $fotoUrl
@@ -95,7 +129,6 @@ HTML;
 .profile-photo-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--cor-vermelho,#b65c52);font-size:3rem;background:#fff7f5}
 .profile-photo-actions{display:flex;flex-direction:column;align-items:flex-start}
 .profile-photo-actions small{color:#6c757d;margin-top:.15rem}
-.sidebar-profile-photo{width:88px;height:88px;border-radius:50%;object-fit:cover;border:3px solid var(--cor-rosa-pastel,#f0c9c4);display:inline-block}
 @media(max-width:575.98px){.profile-photo-editor{align-items:flex-start}.profile-photo-avatar{width:78px;height:78px;flex-basis:78px}.profile-photo-actions .btn{font-size:.78rem}}
 </style>
 CSS;
