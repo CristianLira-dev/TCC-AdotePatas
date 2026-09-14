@@ -155,7 +155,7 @@ if (!defined('ADOTE_PATAS_ROUTING_LOADED')) {
         if (stripos($buffer, 'class="chat-page-body"') !== false) {
             if (stripos($buffer, 'chat/fullscreen.css') === false) {
                 $layoutUrl = htmlspecialchars(
-                    adotePatasUrl('assets/css/pages/chat/fullscreen.css?v=20260914-1'),
+                    adotePatasUrl('assets/css/pages/chat/fullscreen.css?v=20260914-2'),
                     ENT_QUOTES,
                     'UTF-8'
                 );
