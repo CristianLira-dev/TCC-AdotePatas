@@ -7,6 +7,15 @@ ob_start();
 require dirname(__DIR__) . '/perfil.php';
 $html = ob_get_clean();
 
+// O banner1 continua disponível para perfis que já o utilizam, mas não pode mais
+// ser escolhido novamente no modal de seleção.
+$html = preg_replace(
+    "~\\s*<div class='col-6 col-md-4 mb-3'>\\s*<div class='banner-option[^']*' data-banner='banner1\\.jpg'>\\s*<img[^>]*>\\s*(?:<div class='badge[^>]*>.*?</div>)?\\s*</div>\\s*</div>~s",
+    '',
+    $html,
+    1
+);
+
 $baseUrl = ADOTE_PATAS_BASE_URL;
 $fotoPerfil = null;
 $paginaAtual = $_GET['page'] ?? 'perfil';
