@@ -2,7 +2,7 @@
 
 import { initTabs } from './modules/ui/tabs.js';
 import { initRecoveryModal } from './modules/ui/modal-recovery.js';
-import { initToastNotification } from './modules/ui/toast.js';
+import { initToastNotification } from './modules/ui/toast.js?v=20260914-2';
 import { initPasswordToggle, initInputMasks } from './modules/forms/validation.js';
 import { initCadastroUsuarioForm } from './modules/forms/form-cadastro-usuario.js';
 import { initCadastroOngForm } from './modules/forms/form-cadastro-ong.js';
@@ -13,7 +13,6 @@ import { initBuscaCep } from './modules/forms/busca-cep.js';
  * Aguarda o DOM estar pronto e inicializa todos os módulos.
  */
 document.addEventListener("DOMContentLoaded", function () {
-    // Inicializa todos os módulos
     initTabs();
     initPasswordToggle();
     initInputMasks();
