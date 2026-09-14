@@ -41,9 +41,10 @@ export const initToastNotification = () => {
         return;
     }
 
-    // Resolve os arquivos a partir da <base> inserida pelo roteamento.
-    // O nome da pasta fica URL-encoded para evitar falhas no servidor com caracteres acentuados.
-    const animationBaseUrl = new URL("anima%C3%A7%C3%B5es/", document.baseURI).href;
+    const metaBase = document.querySelector('meta[name="adotepatas-lottie-base"]')?.content;
+    const animationBaseUrl = metaBase
+        ? new URL(metaBase, window.location.origin).href
+        : new URL("anima%C3%A7%C3%B5es/", document.baseURI).href;
 
     const toastTypes = {
         success: {
@@ -64,7 +65,9 @@ export const initToastNotification = () => {
         },
         error: {
             title: "Erro",
-            animation: `${animationBaseUrl}cachorro_agua_erro.json`,
+            // cachorro_agua_erro.json foi exportado em um formato que não contém
+            // os campos padrão v/fr/ip/op esperados pelo web player.
+            animation: `${animationBaseUrl}Error.json`,
             background: "#fee2e2",
             color: "#991b1b",
             border: "#ef4444",
@@ -88,16 +91,29 @@ export const initToastNotification = () => {
     toastTitle.textContent = config.title;
     toastMessage.textContent = message;
 
-    toastIcon.innerHTML = `
-        <lottie-player
-            src="${config.animation}"
-            background="transparent"
-            speed="1"
-            style="width: 100%; height: 100%;"
-            loop
-            autoplay>
-        </lottie-player>
-    `;
+    // Cria o custom element pelo DOM em vez de injetá-lo por innerHTML.
+    // Assim o player só recebe o src depois que o elemento foi criado/upgraded.
+    toastIcon.replaceChildren();
+    const player = document.createElement("lottie-player");
+    player.setAttribute("background", "transparent");
+    player.setAttribute("speed", "1");
+    player.setAttribute("loop", "");
+    player.setAttribute("autoplay", "");
+    player.style.width = "100%";
+    player.style.height = "100%";
+    toastIcon.appendChild(player);
+
+    const loadAnimation = () => {
+        player.setAttribute("src", config.animation);
+    };
+
+    if (window.customElements?.get("lottie-player")) {
+        loadAnimation();
+    } else if (window.customElements?.whenDefined) {
+        window.customElements.whenDefined("lottie-player").then(loadAnimation);
+    } else {
+        loadAnimation();
+    }
 
     toast.className = `toast toast--${type}`;
     toast.setAttribute("role", type === "error" ? "alert" : "status");
