@@ -2,18 +2,24 @@
 session_start();
 
 require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/chat-read-schema.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 
-function responderPolling(bool $success, array $messages = [], ?string $error = null, int $status = 200): void
-{
+function responderPolling(
+    bool $success,
+    array $messages = [],
+    ?string $error = null,
+    int $status = 200,
+    array $extra = []
+): void {
     http_response_code($status);
-    echo json_encode([
+    echo json_encode(array_merge([
         'success' => $success,
         'messages' => $messages,
         'error' => $error,
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    ], $extra), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
@@ -60,8 +66,31 @@ try {
         responderPolling(false, [], 'Acesso negado.', 403);
     }
 
+    $readReceiptsEnabled = adotePatasEnsureMessageReadSchema($conn);
+
+    if ($readReceiptsEnabled) {
+        $stmtRead = $conn->prepare(
+            "UPDATE mensagem
+             SET lida = 1,
+                 data_leitura = COALESCE(data_leitura, NOW())
+             WHERE id_conversa_fk = :conversa_id
+               AND lida = 0
+               AND NOT (id_remetente_fk = :meu_id AND tipo_remetente = :meu_tipo)"
+        );
+        $stmtRead->execute([
+            ':conversa_id' => $conversaId,
+            ':meu_id' => $userId,
+            ':meu_tipo' => $userTipo,
+        ]);
+    }
+
+    $selectFields = 'id_mensagem, conteudo, data_envio, id_remetente_fk, tipo_remetente, tipo_conteudo, arquivo_nome';
+    if ($readReceiptsEnabled) {
+        $selectFields .= ', lida, data_leitura';
+    }
+
     $stmt = $conn->prepare(
-        "SELECT id_mensagem, conteudo, data_envio, id_remetente_fk, tipo_remetente, tipo_conteudo, arquivo_nome
+        "SELECT {$selectFields}
          FROM mensagem
          WHERE id_conversa_fk = :conversa_id
            AND id_mensagem > :ultimo_id
@@ -81,10 +110,35 @@ try {
             && $message['tipo_remetente'] === $userTipo
         );
         $message['data_formatada'] = date('H:i, d/m/Y', strtotime($message['data_envio']));
+        $message['lida'] = $readReceiptsEnabled ? (bool) ($message['lida'] ?? false) : false;
+        $message['data_leitura'] = $readReceiptsEnabled ? ($message['data_leitura'] ?? null) : null;
     }
     unset($message);
 
-    responderPolling(true, $messages);
+    $readIds = [];
+    if ($readReceiptsEnabled) {
+        $stmtReadIds = $conn->prepare(
+            "SELECT id_mensagem
+             FROM mensagem
+             WHERE id_conversa_fk = :conversa_id
+               AND id_remetente_fk = :meu_id
+               AND tipo_remetente = :meu_tipo
+               AND lida = 1
+             ORDER BY id_mensagem DESC
+             LIMIT 200"
+        );
+        $stmtReadIds->execute([
+            ':conversa_id' => $conversaId,
+            ':meu_id' => $userId,
+            ':meu_tipo' => $userTipo,
+        ]);
+        $readIds = array_map('intval', $stmtReadIds->fetchAll(PDO::FETCH_COLUMN));
+    }
+
+    responderPolling(true, $messages, null, 200, [
+        'read_ids' => $readIds,
+        'read_receipts_enabled' => $readReceiptsEnabled,
+    ]);
 } catch (Throwable $e) {
     error_log('Erro no polling do chat: ' . $e->getMessage());
     responderPolling(false, [], 'Erro no servidor.', 500);
