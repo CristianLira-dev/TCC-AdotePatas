@@ -155,6 +155,21 @@ if (!defined('ADOTE_PATAS_ROUTING_LOADED')) {
         $buffer = preg_replace('~chat/([0-9]+)/?~', 'chat/?id=$1', $buffer);
         $buffer = preg_replace('~perfil\?([^"\'<>\s]+)~', 'perfil/?$1', $buffer);
 
+        // O chat ocupa toda a área útil da viewport. Mantemos este CSS separado
+        // para não misturar regras específicas de layout com o roteamento legado.
+        if (stripos($buffer, 'class="chat-page-body"') !== false && stripos($buffer, 'chat/fullscreen.css') === false) {
+            $layoutUrl = htmlspecialchars(
+                adotePatasUrl('assets/css/pages/chat/fullscreen.css?v=20260914-1'),
+                ENT_QUOTES,
+                'UTF-8'
+            );
+            $buffer = str_replace(
+                '</head>',
+                '  <link rel="stylesheet" href="' . $layoutUrl . '">' . "\n</head>",
+                $buffer
+            );
+        }
+
         return $buffer;
     });
 }
