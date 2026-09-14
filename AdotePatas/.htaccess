@@ -1,5 +1,8 @@
 # As URLs agora usam diretórios com index.php; não há regras de reescrita.
 
+# Página personalizada para rotas/arquivos inexistentes.
+ErrorDocument 404 /erro-404/
+
 # Bloqueia arquivos ocultos de acesso direto.
 <FilesMatch "^\.">
     Require all denied
