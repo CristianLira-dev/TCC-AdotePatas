@@ -1,25 +1,44 @@
 /* Layout de tela cheia da rota /chat/ */
 
 .chat-page-body {
-    --chat-app-header-height: 90px;
+    width: 100%;
+    height: 100dvh;
     min-height: 100dvh;
+    margin: 0;
     overflow: hidden;
+    background-color: var(--cor-branca, #fff);
+    display: flex;
+    flex-direction: column;
+}
+
+/* O header geral mantém sua altura natural e o chat ocupa todo o restante. */
+.chat-page-body > header {
+    width: 100%;
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 40;
     background-color: var(--cor-branca, #fff);
 }
 
 .chat-page-body .chat-container.container {
-    width: 100%;
+    width: 100vw;
     max-width: none !important;
-    height: calc(100dvh - var(--chat-app-header-height));
-    max-height: none;
+    height: auto !important;
+    min-height: 0;
+    max-height: none !important;
+    flex: 1 1 auto;
     margin: 0 !important;
     padding: 0 !important;
+    display: flex;
+    overflow: hidden;
 }
 
 .chat-page-body .chat-main-card {
     width: 100%;
+    max-width: none;
     height: 100%;
     min-height: 0;
+    flex: 1 1 auto;
     margin: 0;
     border: 0;
     border-top: 1px solid rgba(0, 0, 0, 0.06);
@@ -44,18 +63,24 @@
 }
 
 .chat-page-body .chat-conversation-area {
+    width: 100%;
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
-/* O cabeçalho de informações pertence ao próprio chat e permanece no topo. */
-.chat-page-body .chat-active-header {
-    position: sticky;
-    top: 0;
+/* Header de informações integrado ao card e sempre no topo. */
+.chat-page-body .chat-conversation-area > .chat-active-header {
+    order: 0;
+    position: relative;
+    top: auto;
+    left: auto;
     width: 100%;
     min-height: 76px;
     padding: 0.85rem 1.5rem;
-    flex-shrink: 0;
+    margin: 0;
+    flex: 0 0 auto;
     z-index: 30;
     background-color: var(--cor-branca, #fff);
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
@@ -76,30 +101,45 @@
     white-space: nowrap;
 }
 
+/* A área de mensagens usa toda a largura e toda a altura livre do card. */
 .chat-page-body .chat-messages {
+    order: 1;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
     min-height: 0;
-    flex: 1 1 auto;
+    flex: 1 1 0;
     overflow-y: auto;
+    overflow-x: hidden;
     overscroll-behavior: contain;
 }
 
+/* Ações sempre no rodapé, com respiro extra na parte inferior. */
 .chat-page-body .chat-input-area {
-    position: sticky;
-    bottom: 0;
+    order: 2;
+    position: relative;
+    bottom: auto;
+    width: 100%;
     z-index: 25;
-    flex-shrink: 0;
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 1rem 1.5rem 1.5rem;
     background-color: var(--cor-branca, #fff);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 @media (max-width: 991.98px) {
     .chat-page-body {
-        --chat-app-header-height: 70px;
+        height: 100dvh;
+        min-height: 100dvh;
         padding-top: 0 !important;
     }
 
     .chat-page-body .chat-container.container {
-        height: calc(100dvh - var(--chat-app-header-height));
+        width: 100%;
+        height: auto !important;
         min-height: 0;
+        flex: 1 1 auto;
         padding: 0 !important;
     }
 
@@ -113,6 +153,7 @@
 
 @media (max-width: 767.98px) {
     .chat-page-body .chat-main-card {
+        width: 100%;
         height: 100%;
     }
 
@@ -121,7 +162,7 @@
         border-right: 0;
     }
 
-    .chat-page-body .chat-active-header {
+    .chat-page-body .chat-conversation-area > .chat-active-header {
         min-height: 68px;
         padding: 0.75rem 1rem;
     }
@@ -139,10 +180,11 @@
     }
 
     .chat-page-body .chat-messages {
+        width: 100%;
         padding: 1rem;
     }
 
     .chat-page-body .chat-input-area {
-        padding: 0.8rem 1rem;
+        padding: 0.8rem 1rem 1.35rem;
     }
 }
