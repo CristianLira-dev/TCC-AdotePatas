@@ -6,9 +6,10 @@
 
     const pollUrl = new URL('buscar-mensagens/', document.baseURI).toString();
 
-    const attachmentUrl = (messageId, download = false) => {
+    const attachmentUrl = (messageId, { raw = false, download = false } = {}) => {
       const url = new URL('chat-anexo/', document.baseURI);
       url.searchParams.set('id', String(messageId));
+      if (raw) url.searchParams.set('raw', '1');
       if (download) url.searchParams.set('download', '1');
       return url.toString();
     };
@@ -47,6 +48,7 @@
           <div class="chat-attachment-viewer-head">
             <span class="chat-attachment-viewer-name">Anexo</span>
             <div class="chat-attachment-viewer-actions">
+              <a class="chat-attachment-viewer-button viewer-page" href="#" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-up-right-from-square"></i> Abrir</a>
               <a class="chat-attachment-viewer-button viewer-download" href="#"><i class="fa-solid fa-download"></i> Baixar</a>
               <button class="chat-attachment-viewer-button viewer-close" type="button" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -78,10 +80,12 @@
       const body = root.querySelector('.chat-attachment-viewer-body');
       const title = root.querySelector('.chat-attachment-viewer-name');
       const download = root.querySelector('.viewer-download');
+      const pageLink = root.querySelector('.viewer-page');
 
       if (title) title.textContent = name || (type === 'video' ? 'Vídeo' : 'Imagem');
+      if (pageLink) pageLink.href = attachmentUrl(messageId);
       if (download) {
-        download.href = attachmentUrl(messageId, true);
+        download.href = attachmentUrl(messageId, { download: true });
         download.setAttribute('download', name || 'anexo');
       }
 
@@ -89,7 +93,7 @@
         body.innerHTML = '';
         if (type === 'video') {
           const video = document.createElement('video');
-          video.src = attachmentUrl(messageId);
+          video.src = attachmentUrl(messageId, { raw: true });
           video.controls = true;
           video.playsInline = true;
           video.autoplay = true;
@@ -97,7 +101,7 @@
           body.appendChild(video);
         } else {
           const image = document.createElement('img');
-          image.src = attachmentUrl(messageId);
+          image.src = attachmentUrl(messageId, { raw: true });
           image.alt = name || 'Imagem enviada';
           body.appendChild(image);
         }
@@ -128,7 +132,7 @@
       video.controls = true;
       video.playsInline = true;
       video.preload = 'metadata';
-      video.src = attachmentUrl(messageId);
+      video.src = attachmentUrl(messageId, { raw: true });
       p.replaceWith(video);
       return video;
     };
@@ -152,13 +156,12 @@
       const media = type === 'video' ? (el.querySelector('video') || convertVideoText(el, messageId)) : el.querySelector('img');
       if (!media) return;
 
-      const secureUrl = attachmentUrl(messageId);
+      const secureUrl = attachmentUrl(messageId, { raw: true });
       if (media.getAttribute('src') !== secureUrl) {
         media.setAttribute('src', secureUrl);
         if (type === 'video') media.load();
       }
 
-      media.setAttribute('controls', type === 'video' ? 'controls' : media.getAttribute('controls') || '');
       if (type === 'video') {
         media.controls = true;
         media.playsInline = true;
@@ -195,13 +198,20 @@
         open.innerHTML = '<i class="fa-solid fa-expand"></i> Visualizar';
         open.addEventListener('click', () => openViewer(messageId, type, name));
 
+        const page = document.createElement('a');
+        page.className = 'chat-attachment-action';
+        page.href = attachmentUrl(messageId);
+        page.target = '_blank';
+        page.rel = 'noopener noreferrer';
+        page.innerHTML = '<i class="fa-solid fa-up-right-from-square"></i> Abrir';
+
         const download = document.createElement('a');
         download.className = 'chat-attachment-action';
-        download.href = attachmentUrl(messageId, true);
+        download.href = attachmentUrl(messageId, { download: true });
         download.setAttribute('download', name || 'anexo');
         download.innerHTML = '<i class="fa-solid fa-download"></i> Baixar';
 
-        actions.append(open, download);
+        actions.append(open, page, download);
         wrap.appendChild(actions);
       }
 
@@ -232,7 +242,7 @@
         actions.className = 'chat-attachment-actions mt-1';
         const download = document.createElement('a');
         download.className = 'chat-attachment-action';
-        download.href = attachmentUrl(messageId, true);
+        download.href = attachmentUrl(messageId, { download: true });
         download.setAttribute('download', name || 'documento');
         download.innerHTML = '<i class="fa-solid fa-download"></i> Baixar';
         actions.appendChild(download);
