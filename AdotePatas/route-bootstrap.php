@@ -35,6 +35,8 @@ if (!defined('ADOTE_PATAS_ROUTING_LOADED')) {
             'pet-detalhe.php' => 'pet-detalhe/',
             'pets-adocao.php' => 'pets/',
             'politicas-privacidade.php' => 'politicas-privacidade/',
+            'politica-privacidade.php' => 'politicas-privacidade/',
+            'politica-de-privacidade.php' => 'politicas-privacidade/',
             'recuperar-senha.php' => 'recuperar-senha/',
             'termos-de-uso.php' => 'termos-de-uso/',
             'trocar-senha.php' => 'trocar-senha/',
@@ -91,7 +93,12 @@ if (!defined('ADOTE_PATAS_ROUTING_LOADED')) {
         $aliases = [
             'login' => 'login/', 'cadastro' => 'cadastro/', 'cadastro-ong' => 'cadastro-ong/',
             'pets' => 'pets/', 'perfil' => 'perfil/', 'sobre-nos' => 'sobre-nos/',
-            'ajuda' => 'ajuda/', 'chat' => 'chat/', 'chat-anexo' => 'chat-anexo/', 'cadastrar-pet' => 'cadastrar-pet/'
+            'ajuda' => 'ajuda/', 'chat' => 'chat/', 'chat-anexo' => 'chat-anexo/', 'cadastrar-pet' => 'cadastrar-pet/',
+            'politicas-privacidade' => 'politicas-privacidade/',
+            'politica-privacidade' => 'politicas-privacidade/',
+            'politica-de-privacidade' => 'politicas-privacidade/',
+            'termos-de-uso' => 'termos-de-uso/',
+            'termos' => 'termos-de-uso/'
         ];
 
         return isset($aliases[$relative]) ? adotePatasUrl($aliases[$relative]) : $location;
@@ -138,6 +145,8 @@ if (!defined('ADOTE_PATAS_ROUTING_LOADED')) {
             '?tab=cadastro_usuario' => 'cadastro/',
             '?tab=cadastro_ong' => 'cadastro-ong/',
             '?tab=login' => 'login/',
+            'politica-privacidade.php' => 'politicas-privacidade/',
+            'politica-de-privacidade.php' => 'politicas-privacidade/',
         ];
         $buffer = str_replace(array_keys($specific), array_values($specific), $buffer);
 
