@@ -21,7 +21,7 @@
 }
 
 .chat-page-body .chat-container.container {
-    width: 100vw;
+    width: 100%;
     max-width: none !important;
     height: auto !important;
     min-height: 0;
@@ -45,12 +45,14 @@
     border-radius: 0;
     box-shadow: none;
     overflow: hidden;
+    flex-wrap: nowrap;
 }
 
 .chat-page-body .chat-sidebar,
 .chat-page-body .chat-conversation-area {
     height: 100%;
     min-height: 0;
+    min-width: 0;
 }
 
 .chat-page-body .chat-sidebar {
@@ -62,8 +64,8 @@
     overscroll-behavior: contain;
 }
 
+/* No desktop, a largura continua sendo controlada pelas classes col-md/col-lg. */
 .chat-page-body .chat-conversation-area {
-    width: 100%;
     position: relative;
     overflow: hidden;
     display: flex;
@@ -101,11 +103,10 @@
     white-space: nowrap;
 }
 
-/* A área de mensagens usa toda a largura e toda a altura livre do card. */
+/* A área de mensagens usa todo o espaço livre da coluna direita. */
 .chat-page-body .chat-messages {
     order: 1;
     width: 100%;
-    height: 100%;
     min-width: 0;
     min-height: 0;
     flex: 1 1 0;
@@ -160,6 +161,12 @@
     .chat-page-body .chat-sidebar {
         min-height: 0;
         border-right: 0;
+    }
+
+    /* Em celular, uma conversa selecionada ocupa toda a largura. */
+    .chat-page-body .chat-conversation-area {
+        width: 100%;
+        flex: 0 0 100%;
     }
 
     .chat-page-body .chat-conversation-area > .chat-active-header {
