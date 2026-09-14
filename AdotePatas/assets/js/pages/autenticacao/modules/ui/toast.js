@@ -65,9 +65,8 @@ export const initToastNotification = () => {
         },
         error: {
             title: "Erro",
-            // cachorro_agua_erro.json foi exportado em um formato que não contém
-            // os campos padrão v/fr/ip/op esperados pelo web player.
-            animation: `${animationBaseUrl}Error.json`,
+            animation: `${animationBaseUrl}cachorro_agua_erro.json`,
+            creatorFormat: true,
             background: "#fee2e2",
             color: "#991b1b",
             border: "#ef4444",
@@ -91,8 +90,6 @@ export const initToastNotification = () => {
     toastTitle.textContent = config.title;
     toastMessage.textContent = message;
 
-    // Cria o custom element pelo DOM em vez de injetá-lo por innerHTML.
-    // Assim o player só recebe o src depois que o elemento foi criado/upgraded.
     toastIcon.replaceChildren();
     const player = document.createElement("lottie-player");
     player.setAttribute("background", "transparent");
@@ -103,7 +100,46 @@ export const initToastNotification = () => {
     player.style.height = "100%";
     toastIcon.appendChild(player);
 
+    const loadCreatorAnimation = async () => {
+        try {
+            const response = await fetch(config.animation, { cache: "force-cache" });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const animationData = await response.json();
+
+            // Arquivos exportados pelo LottieFiles Creator podem vir sem alguns
+            // metadados exigidos pelo lottie-player, embora as layers estejam válidas.
+            animationData.v ||= "5.12.1";
+            animationData.fr ||= 30;
+            animationData.ip ??= 0;
+            animationData.assets ||= [];
+
+            if (animationData.op == null) {
+                const layerEndFrames = Array.isArray(animationData.layers)
+                    ? animationData.layers.map((layer) => Number(layer?.op || 0))
+                    : [];
+                animationData.op = Math.max(1, ...layerEndFrames);
+            }
+
+            if (typeof player.load === "function") {
+                player.load(animationData);
+            } else {
+                player.setAttribute("src", config.animation);
+            }
+        } catch (error) {
+            console.warn("Não foi possível normalizar a animação de erro:", error);
+            player.setAttribute("src", config.animation);
+        }
+    };
+
     const loadAnimation = () => {
+        if (config.creatorFormat) {
+            loadCreatorAnimation();
+            return;
+        }
+
         player.setAttribute("src", config.animation);
     };
 
