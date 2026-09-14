@@ -123,6 +123,15 @@ if (!defined('ADOTE_PATAS_ROUTING_LOADED')) {
             $buffer = preg_replace_callback('/<head\b[^>]*>/i', static fn(array $match): string => $match[0] . "\n  <base href=\"{$baseUrl}\">", $buffer, 1);
         }
 
+        // Mantém o Lottie Player em uma versão estável e normaliza a pasta
+        // com caractere acentuado para funcionar de forma confiável nas rotas por diretório.
+        $buffer = str_replace(
+            'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
+            'https://unpkg.com/@lottiefiles/lottie-player@2.0.12/dist/lottie-player.js',
+            $buffer
+        );
+        $buffer = str_replace('animações/', 'anima%C3%A7%C3%B5es/', $buffer);
+
         $specific = [
             'autenticacao.php?tab=cadastro_usuario' => 'cadastro/',
             'autenticacao.php?tab=cadastro_ong' => 'cadastro-ong/',
