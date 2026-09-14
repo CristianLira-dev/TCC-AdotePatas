@@ -41,10 +41,14 @@ export const initToastNotification = () => {
         return;
     }
 
+    // Resolve os arquivos a partir da <base> inserida pelo roteamento.
+    // O nome da pasta fica URL-encoded para evitar falhas no servidor com caracteres acentuados.
+    const animationBaseUrl = new URL("anima%C3%A7%C3%B5es/", document.baseURI).href;
+
     const toastTypes = {
         success: {
             title: "Sucesso",
-            animation: "animações/gatinho-amor.json",
+            animation: `${animationBaseUrl}gatinho-amor.json`,
             background: "#dcfce7",
             color: "#166534",
             border: "#22c55e",
@@ -52,7 +56,7 @@ export const initToastNotification = () => {
         },
         alert: {
             title: "Alerta",
-            animation: "animações/gatinho-aviso.json",
+            animation: `${animationBaseUrl}gatinho-aviso.json`,
             background: "#fef3c7",
             color: "#92400e",
             border: "#f59e0b",
@@ -60,7 +64,7 @@ export const initToastNotification = () => {
         },
         error: {
             title: "Erro",
-            animation: "animações/cachorro_agua_erro.json",
+            animation: `${animationBaseUrl}cachorro_agua_erro.json`,
             background: "#fee2e2",
             color: "#991b1b",
             border: "#ef4444",
@@ -100,8 +104,6 @@ export const initToastNotification = () => {
     toast.setAttribute("aria-live", type === "error" ? "assertive" : "polite");
     toast.setAttribute("aria-atomic", "true");
 
-    // As cores são aplicadas aqui para não depender das classes antigas
-    // warning/danger, que utilizavam o mesmo visual vermelho.
     toast.style.backgroundColor = config.background;
     toast.style.color = config.color;
     toast.style.border = `1px solid ${config.border}`;
