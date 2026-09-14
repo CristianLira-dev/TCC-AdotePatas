@@ -1,67 +1,91 @@
 <?php
 session_start();
-include_once 'conexao.php';
-include_once 'session.php';
 
-header('Content-Type: application/json');
+require_once __DIR__ . '/conexao.php';
 
-// 1. Auth Check
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_tipo'])) {
-    http_response_code(403);
-    echo json_encode(['success' => false, 'error' => 'Não autorizado']);
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+
+function responderPolling(bool $success, array $messages = [], ?string $error = null, int $status = 200): void
+{
+    http_response_code($status);
+    echo json_encode([
+        'success' => $success,
+        'messages' => $messages,
+        'error' => $error,
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
-$user_id = $_SESSION['user_id'];
-$user_tipo = $_SESSION['user_tipo'];
+if (!isset($_SESSION['user_id'], $_SESSION['user_tipo'])) {
+    responderPolling(false, [], 'Não autorizado.', 401);
+}
 
-// 2. Validação dos Parâmetros (GET)
-// O JS vai mandar: ?conversa_id=1&ultimo_id=50
-$conversa_id = filter_input(INPUT_GET, 'conversa_id', FILTER_VALIDATE_INT);
-$ultimo_id = filter_input(INPUT_GET, 'ultimo_id', FILTER_VALIDATE_INT);
+$userId = (int) $_SESSION['user_id'];
+$userTipo = (string) $_SESSION['user_tipo'];
 
-if (!$conversa_id || $ultimo_id === null) {
-    echo json_encode(['success' => false, 'messages' => []]); // Retorna vazio se dados inválidos
-    exit;
+if (!in_array($userTipo, ['usuario', 'ong'], true)) {
+    responderPolling(false, [], 'Tipo de usuário inválido.', 403);
+}
+
+$conversaId = filter_input(INPUT_GET, 'conversa_id', FILTER_VALIDATE_INT);
+$ultimoId = filter_input(INPUT_GET, 'ultimo_id', FILTER_VALIDATE_INT);
+
+if (!$conversaId || $ultimoId === false || $ultimoId === null || $ultimoId < 0) {
+    responderPolling(false, [], 'Parâmetros inválidos.', 400);
 }
 
 try {
-    // 3. Verificação de Segurança (O usuário pertence à conversa?)
-    $sql_perm = "SELECT id_conversa FROM conversa 
-                 WHERE id_conversa = :id_conversa 
-                 AND (
-                     (id_adotante_fk = :uid AND :utipo = 'usuario') 
-                     OR 
-                     (id_protetor_fk = :uid AND tipo_protetor = :utipo)
-                 ) LIMIT 1";
-    $stmt_perm = $conn->prepare($sql_perm);
-    $stmt_perm->execute([':id_conversa' => $conversa_id, ':uid' => $user_id, ':utipo' => $user_tipo]);
+    $sqlPermissao = "
+        SELECT id_conversa
+        FROM conversa
+        WHERE id_conversa = :conversa_id
+          AND (
+                (id_adotante_fk = :adotante_id AND :tipo_adotante = 'usuario')
+             OR (id_protetor_fk = :protetor_id AND tipo_protetor = :tipo_protetor)
+          )
+        LIMIT 1
+    ";
 
-    if ($stmt_perm->rowCount() === 0) {
-        echo json_encode(['success' => false, 'error' => 'Acesso negado']);
-        exit;
+    $stmtPermissao = $conn->prepare($sqlPermissao);
+    $stmtPermissao->execute([
+        ':conversa_id' => $conversaId,
+        ':adotante_id' => $userId,
+        ':tipo_adotante' => $userTipo,
+        ':protetor_id' => $userId,
+        ':tipo_protetor' => $userTipo,
+    ]);
+
+    if (!$stmtPermissao->fetchColumn()) {
+        responderPolling(false, [], 'Acesso negado.', 403);
     }
 
-    $sql = "SELECT id_mensagem, conteudo, data_envio, id_remetente_fk, tipo_remetente, tipo_conteudo, arquivo_nome
-            FROM mensagem 
-            WHERE id_conversa_fk = :id_conversa 
-            AND id_mensagem > :ultimo_id 
-            ORDER BY id_mensagem ASC";
-            
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([':id_conversa' => $conversa_id, ':ultimo_id' => $ultimo_id]);
-    
-    $mensagens = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    foreach ($mensagens as &$msg) {
-        $msg['data_formatada'] = date('H:i, d/m/Y', strtotime($msg['data_envio']));
-        $msg['sou_eu'] = ($msg['id_remetente_fk'] == $user_id && $msg['tipo_remetente'] == $user_tipo);
+    $stmt = $conn->prepare(
+        "SELECT id_mensagem, conteudo, data_envio, id_remetente_fk, tipo_remetente, tipo_conteudo, arquivo_nome
+         FROM mensagem
+         WHERE id_conversa_fk = :conversa_id
+           AND id_mensagem > :ultimo_id
+         ORDER BY id_mensagem ASC"
+    );
+    $stmt->bindValue(':conversa_id', $conversaId, PDO::PARAM_INT);
+    $stmt->bindValue(':ultimo_id', $ultimoId, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($messages as &$message) {
+        $message['id_mensagem'] = (int) $message['id_mensagem'];
+        $message['id_remetente_fk'] = (int) $message['id_remetente_fk'];
+        $message['sou_eu'] = (
+            $message['id_remetente_fk'] === $userId
+            && $message['tipo_remetente'] === $userTipo
+        );
+        $message['data_formatada'] = date('H:i, d/m/Y', strtotime($message['data_envio']));
     }
+    unset($message);
 
-    echo json_encode(['success' => true, 'messages' => $mensagens]);
-
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => 'Erro no servidor']);
+    responderPolling(true, $messages);
+} catch (Throwable $e) {
+    error_log('Erro no polling do chat: ' . $e->getMessage());
+    responderPolling(false, [], 'Erro no servidor.', 500);
 }
-?>
