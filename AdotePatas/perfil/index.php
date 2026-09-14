@@ -30,6 +30,7 @@ if (!isset($_SESSION['profile_photo_csrf'])) {
 
 $csrfToken = $_SESSION['profile_photo_csrf'];
 $fotoUrl = $fotoPerfil ? $baseUrl . ltrim($fotoPerfil, '/') : null;
+$endpointUrl = $baseUrl . 'atualizar-foto-perfil.php';
 
 if ($fotoUrl) {
     $sidebarPhoto = '<img src="' . htmlspecialchars($fotoUrl, ENT_QUOTES, 'UTF-8') . '" alt="Foto de perfil" class="sidebar-profile-photo" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline-block\';"><i class="fa-regular fa-circle-user sidebar-profile-icon" style="display:none"></i>';
@@ -45,8 +46,11 @@ if ($paginaAtual === 'perfil' && in_array($_SESSION['user_tipo'] ?? '', ['usuari
         ? '<img id="profile-photo-preview" src="' . htmlspecialchars($fotoUrl, ENT_QUOTES, 'UTF-8') . '" alt="Foto de perfil">'
         : '<div id="profile-photo-fallback" class="profile-photo-fallback"><i class="fa-regular fa-circle-user"></i></div>';
 
+    $endpointEscaped = htmlspecialchars($endpointUrl, ENT_QUOTES, 'UTF-8');
+    $csrfEscaped = htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8');
+
     $removeButton = $fotoUrl
-        ? '<button type="button" id="btn-remove-profile-photo" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-trash me-1"></i> Remover foto</button>'
+        ? '<form action="' . $endpointEscaped . '" method="POST" class="d-inline"><input type="hidden" name="csrf_token" value="' . $csrfEscaped . '"><input type="hidden" name="action" value="remove"><button type="submit" class="btn btn-outline-danger btn-sm"><i class="fa-solid fa-trash me-1"></i> Remover foto</button></form>'
         : '';
 
     $editor = <<<HTML
@@ -58,20 +62,21 @@ if ($paginaAtual === 'perfil' && in_array($_SESSION['user_tipo'] ?? '', ['usuari
         <strong>Foto de perfil</strong>
         <small>JPG, PNG ou WEBP de até 5 MB.</small>
         <div class="d-flex flex-wrap gap-2 mt-2">
-            <label for="profile-photo-input" class="btn btn-danger btn-sm mb-0">
-                <i class="fa-solid fa-camera me-1"></i> Alterar foto
-            </label>
+            <form action="{$endpointEscaped}" method="POST" enctype="multipart/form-data" id="profile-photo-form" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{$csrfEscaped}">
+                <input type="hidden" name="action" value="upload">
+                <label for="profile-photo-input" class="btn btn-danger btn-sm mb-0">
+                    <i class="fa-solid fa-camera me-1"></i> Alterar foto
+                </label>
+                <input type="file" id="profile-photo-input" name="foto_perfil" accept="image/jpeg,image/png,image/webp" hidden onchange="this.form.submit()">
+            </form>
             {$removeButton}
         </div>
-        <input type="file" id="profile-photo-input" accept="image/jpeg,image/png,image/webp" hidden>
     </div>
 </div>
 HTML;
 
     $html = str_replace('<h1>Meu Perfil</h1>', $editor . "\n<h1>Meu Perfil</h1>", $html);
-
-    $baseJson = json_encode($baseUrl . 'atualizar-foto-perfil.php', JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-    $csrfJson = json_encode($csrfToken, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
     $styles = <<<'CSS'
 <style id="profile-photo-styles">
@@ -86,74 +91,7 @@ HTML;
 </style>
 CSS;
 
-    $script = <<<HTML
-<script id="profile-photo-script">
-document.addEventListener('DOMContentLoaded', () => {
-    const input = document.getElementById('profile-photo-input');
-    const removeButton = document.getElementById('btn-remove-profile-photo');
-    const endpoint = {$baseJson};
-    const csrfToken = {$csrfJson};
-
-    const notify = (message, type = 'success') => {
-        if (typeof window.showToast === 'function') {
-            window.showToast(message, type);
-        } else {
-            alert(message);
-        }
-    };
-
-    const submitPhoto = async (formData) => {
-        formData.append('csrf_token', csrfToken);
-        const response = await fetch(endpoint, { method: 'POST', body: formData });
-        const result = await response.json().catch(() => ({ success: false, message: 'Resposta inválida do servidor.' }));
-
-        if (!response.ok || !result.success) {
-            throw new Error(result.message || 'Não foi possível atualizar a foto.');
-        }
-
-        notify(result.message, 'success');
-        setTimeout(() => window.location.reload(), 450);
-    };
-
-    input?.addEventListener('change', async () => {
-        const file = input.files?.[0];
-        if (!file) return;
-
-        if (file.size > 5 * 1024 * 1024) {
-            notify('A imagem deve ter no máximo 5 MB.', 'error');
-            input.value = '';
-            return;
-        }
-
-        const data = new FormData();
-        data.append('action', 'upload');
-        data.append('foto_perfil', file);
-
-        try {
-            await submitPhoto(data);
-        } catch (error) {
-            notify(error.message, 'error');
-        } finally {
-            input.value = '';
-        }
-    });
-
-    removeButton?.addEventListener('click', async () => {
-        const data = new FormData();
-        data.append('action', 'remove');
-
-        try {
-            await submitPhoto(data);
-        } catch (error) {
-            notify(error.message, 'error');
-        }
-    });
-});
-</script>
-HTML;
-
     $html = str_replace('</head>', $styles . "\n</head>", $html);
-    $html = str_replace('</body>', $script . "\n</body>", $html);
 }
 
 echo $html;
