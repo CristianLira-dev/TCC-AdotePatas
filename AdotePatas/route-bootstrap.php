@@ -26,6 +26,7 @@ if (!defined('ADOTE_PATAS_ROUTING_LOADED')) {
             'autenticacao.php' => 'login/',
             'cadastrar-pet.php' => 'cadastrar-pet/',
             'chat.php' => 'chat/',
+            'chat-anexo.php' => 'chat-anexo/',
             'como-adotar.php' => 'como-adotar/',
             'editar-pet.php' => 'editar-pet/',
             'formulario-adocao.php' => 'formulario-adocao/',
@@ -90,7 +91,7 @@ if (!defined('ADOTE_PATAS_ROUTING_LOADED')) {
         $aliases = [
             'login' => 'login/', 'cadastro' => 'cadastro/', 'cadastro-ong' => 'cadastro-ong/',
             'pets' => 'pets/', 'perfil' => 'perfil/', 'sobre-nos' => 'sobre-nos/',
-            'ajuda' => 'ajuda/', 'chat' => 'chat/', 'cadastrar-pet' => 'cadastrar-pet/'
+            'ajuda' => 'ajuda/', 'chat' => 'chat/', 'chat-anexo' => 'chat-anexo/', 'cadastrar-pet' => 'cadastrar-pet/'
         ];
 
         return isset($aliases[$relative]) ? adotePatasUrl($aliases[$relative]) : $location;
@@ -123,8 +124,6 @@ if (!defined('ADOTE_PATAS_ROUTING_LOADED')) {
             $buffer = preg_replace_callback('/<head\b[^>]*>/i', static fn(array $match): string => $match[0] . "\n  <base href=\"{$baseUrl}\">", $buffer, 1);
         }
 
-        // Mantém o Lottie Player em uma versão estável e normaliza a pasta
-        // com caractere acentuado para funcionar de forma confiável nas rotas por diretório.
         $buffer = str_replace(
             'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
             'https://unpkg.com/@lottiefiles/lottie-player@2.0.12/dist/lottie-player.js',
@@ -177,7 +176,7 @@ if (!defined('ADOTE_PATAS_ROUTING_LOADED')) {
 
             if (stripos($buffer, 'media-receipts.js') === false) {
                 $chatEnhancerUrl = htmlspecialchars(
-                    adotePatasUrl('assets/js/pages/chat/media-receipts.js?v=20260914-1'),
+                    adotePatasUrl('assets/js/pages/chat/media-receipts.js?v=20260914-2'),
                     ENT_QUOTES,
                     'UTF-8'
                 );
