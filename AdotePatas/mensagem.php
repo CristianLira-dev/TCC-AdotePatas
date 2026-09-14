@@ -1,173 +1,193 @@
 <?php
 session_start();
-include_once 'conexao.php';
-include_once 'session.php';
 
-header('Content-Type: application/json');
+require_once __DIR__ . '/conexao.php';
 
-// Verifica se o upload excedeu o limite do POST (erro crítico do PHP)
-if (empty($_FILES) && empty($_POST) && isset($_SERVER['CONTENT_LENGTH']) && $_SERVER['CONTENT_LENGTH'] > 0) {
-    http_response_code(413); // Payload Too Large
-    echo json_encode(['success' => false, 'message' => 'O arquivo é muito grande para o servidor.']);
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+
+function responderMensagem(bool $success, string $message, array $extra = [], int $status = 200): void
+{
+    http_response_code($status);
+    echo json_encode(array_merge([
+        'success' => $success,
+        'message' => $message,
+    ], $extra), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
-// 1. Auth Check
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_tipo'])) {
-    http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Usuário não autenticado.']);
-    exit;
-}
-
-$user_id_logado = $_SESSION['user_id'];
-$user_tipo_logado = $_SESSION['user_tipo'];
-
-// 2. Detectar se é POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Método não permitido.']);
-    exit;
+    responderMensagem(false, 'Método não permitido.', [], 405);
 }
 
-$conversa_id = null;
-$conteudo = null;
-$tipo_conteudo = 'texto';
-$arquivo_nome_original = null;
-
-// Tenta ler JSON primeiro (para mensagens de texto puro)
-$inputJSON = json_decode(file_get_contents('php://input'), true);
-
-if ($inputJSON) {
-    $conversa_id = $inputJSON['conversa_id'] ?? null;
-    $conteudo = trim($inputJSON['conteudo'] ?? '');
-} else {
-    // Se não é JSON, assume que é FormData (com ou sem arquivo)
-    $conversa_id = $_POST['conversa_id'] ?? null;
-    $conteudo = trim($_POST['conteudo'] ?? '');
+if (!isset($_SESSION['user_id'], $_SESSION['user_tipo'])) {
+    responderMensagem(false, 'Usuário não autenticado.', [], 401);
 }
 
-if (empty($conversa_id) || !filter_var($conversa_id, FILTER_VALIDATE_INT)) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'ID da conversa inválido ou ausente.']);
-    exit;
+if (empty($_FILES) && empty($_POST) && isset($_SERVER['CONTENT_LENGTH']) && (int) $_SERVER['CONTENT_LENGTH'] > 0) {
+    responderMensagem(false, 'O conteúdo enviado ultrapassa o limite permitido pelo servidor.', [], 413);
 }
+
+$userId = (int) $_SESSION['user_id'];
+$userTipo = (string) $_SESSION['user_tipo'];
+
+if (!in_array($userTipo, ['usuario', 'ong'], true)) {
+    responderMensagem(false, 'Tipo de usuário inválido para o chat.', [], 403);
+}
+
+$contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+$jsonInput = [];
+
+if (stripos($contentType, 'application/json') !== false) {
+    $rawInput = file_get_contents('php://input');
+    $decoded = json_decode($rawInput ?: '', true);
+    if (is_array($decoded)) {
+        $jsonInput = $decoded;
+    }
+}
+
+$conversaId = filter_var(
+    $jsonInput['conversa_id'] ?? $_POST['conversa_id'] ?? null,
+    FILTER_VALIDATE_INT
+);
+$conteudo = trim((string) ($jsonInput['conteudo'] ?? $_POST['conteudo'] ?? ''));
+
+if (!$conversaId) {
+    responderMensagem(false, 'ID da conversa inválido ou ausente.', [], 400);
+}
+
+$tipoConteudo = 'texto';
+$arquivoNomeOriginal = null;
+$arquivoSalvo = null;
 
 try {
-    // 3. Segurança: Verifica permissão na conversa
-    $sql_check = "SELECT id_conversa FROM conversa 
-                  WHERE id_conversa = :conversa_id 
-                  AND (
-                      (id_adotante_fk = :user_id AND :user_tipo = 'usuario')
-                      OR 
-                      (id_protetor_fk = :user_id AND tipo_protetor = :user_tipo)
-                  )
-                  LIMIT 1";
-    $stmt_check = $conn->prepare($sql_check);
-    $stmt_check->execute([':conversa_id' => $conversa_id, ':user_id' => $user_id_logado, ':user_tipo' => $user_tipo_logado]);
+    // Placeholders únicos evitam HY093 quando ATTR_EMULATE_PREPARES está desativado.
+    $sqlPermissao = "
+        SELECT id_conversa
+        FROM conversa
+        WHERE id_conversa = :conversa_id
+          AND (
+                (id_adotante_fk = :adotante_id AND :tipo_adotante = 'usuario')
+             OR (id_protetor_fk = :protetor_id AND tipo_protetor = :tipo_protetor)
+          )
+        LIMIT 1
+    ";
 
-    if ($stmt_check->rowCount() == 0) {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Acesso negado à conversa.']);
-        exit;
+    $stmtPermissao = $conn->prepare($sqlPermissao);
+    $stmtPermissao->execute([
+        ':conversa_id' => $conversaId,
+        ':adotante_id' => $userId,
+        ':tipo_adotante' => $userTipo,
+        ':protetor_id' => $userId,
+        ':tipo_protetor' => $userTipo,
+    ]);
+
+    if (!$stmtPermissao->fetchColumn()) {
+        responderMensagem(false, 'Acesso negado à conversa.', [], 403);
     }
 
-    // 4. Processamento de Arquivo
     if (isset($_FILES['arquivo'])) {
-        // Verifica erros específicos do PHP no upload
-        if ($_FILES['arquivo']['error'] !== UPLOAD_ERR_OK) {
-            $erro_codigo = $_FILES['arquivo']['error'];
-            $msg_erro = "Erro desconhecido no upload ($erro_codigo)";
-            
-            switch ($erro_codigo) {
-                case UPLOAD_ERR_INI_SIZE:
-                case UPLOAD_ERR_FORM_SIZE:
-                    $msg_erro = "O arquivo excede o tamanho máximo permitido.";
-                    break;
-                case UPLOAD_ERR_PARTIAL:
-                    $msg_erro = "O upload foi interrompido.";
-                    break;
-                case UPLOAD_ERR_NO_FILE:
-                    $msg_erro = "Nenhum arquivo foi enviado.";
-                    break;
-                case UPLOAD_ERR_NO_TMP_DIR:
-                    $msg_erro = "Pasta temporária ausente no servidor.";
-                    break;
-                case UPLOAD_ERR_CANT_WRITE:
-                    $msg_erro = "Falha ao escrever arquivo no disco.";
-                    break;
-            }
-            throw new Exception($msg_erro);
+        $file = $_FILES['arquivo'];
+
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            $uploadErrors = [
+                UPLOAD_ERR_INI_SIZE => 'O arquivo excede o tamanho máximo permitido pelo servidor.',
+                UPLOAD_ERR_FORM_SIZE => 'O arquivo excede o tamanho máximo permitido.',
+                UPLOAD_ERR_PARTIAL => 'O upload foi interrompido. Tente novamente.',
+                UPLOAD_ERR_NO_FILE => 'Nenhum arquivo foi enviado.',
+                UPLOAD_ERR_NO_TMP_DIR => 'O servidor não possui diretório temporário disponível.',
+                UPLOAD_ERR_CANT_WRITE => 'O servidor não conseguiu gravar o arquivo.',
+                UPLOAD_ERR_EXTENSION => 'O upload foi bloqueado pelo servidor.',
+            ];
+
+            $code = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+            responderMensagem(false, $uploadErrors[$code] ?? 'Falha ao receber o arquivo.', [], 400);
         }
 
-        $file = $_FILES['arquivo'];
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $arquivo_nome_original = $file['name'];
-        
-        // Tipos permitidos
-        $imagens = ['webp', 'gif', 'jpg', 'jpeg', 'png']; 
-        $documentos = ['pdf', 'doc', 'docx', 'txt'];
-        
-        if (in_array($ext, $imagens)) {
-            $tipo_conteudo = 'imagem';
-        } elseif (in_array($ext, $documentos)) {
-            $tipo_conteudo = 'arquivo';
-        } else {
-            throw new Exception("Formato de arquivo não suportado ($ext).");
+        if ((int) $file['size'] > 10 * 1024 * 1024) {
+            responderMensagem(false, 'O arquivo deve ter no máximo 10 MB.', [], 413);
         }
-        
-        // Garante que a pasta existe
-        $upload_dir = 'uploads/chat/';
-        if (!is_dir($upload_dir)) {
-            if (!mkdir($upload_dir, 0755, true)) {
-                throw new Exception("Falha ao criar diretório de upload.");
+
+        $extension = strtolower(pathinfo((string) $file['name'], PATHINFO_EXTENSION));
+        $arquivoNomeOriginal = basename((string) $file['name']);
+
+        $imageExtensions = ['webp', 'gif', 'jpg', 'jpeg', 'png'];
+        $documentExtensions = ['pdf', 'doc', 'docx', 'txt', 'rtf'];
+
+        if (in_array($extension, $imageExtensions, true)) {
+            $tipoConteudo = 'imagem';
+
+            $imageInfo = @getimagesize($file['tmp_name']);
+            if ($imageInfo === false) {
+                responderMensagem(false, 'A imagem enviada é inválida.', [], 400);
             }
-        }
-        
-        $novo_nome = uniqid('chat_') . '.' . $ext;
-        $destino = $upload_dir . $novo_nome;
-        
-        if (move_uploaded_file($file['tmp_name'], $destino)) {
-            // *** CORREÇÃO PARA O ERRO 403 ***
-            // Força permissão de leitura pública para o arquivo salvo
-            chmod($destino, 0644); 
-            $conteudo = $destino; 
+        } elseif (in_array($extension, $documentExtensions, true)) {
+            $tipoConteudo = 'arquivo';
         } else {
-            throw new Exception("Erro ao mover o arquivo para o destino final.");
+            responderMensagem(false, 'Formato de arquivo não suportado.', [], 400);
         }
-    } else {
-        // Se não tem arquivo, tem que ter texto
-        if (empty($conteudo)) {
-            throw new Exception("Mensagem vazia (nenhum texto ou arquivo recebido).");
+
+        $uploadDir = __DIR__ . '/uploads/chat';
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)) {
+            responderMensagem(false, 'Não foi possível preparar a pasta de uploads.', [], 500);
         }
+
+        $fileName = 'chat_' . bin2hex(random_bytes(12)) . '.' . $extension;
+        $destination = $uploadDir . '/' . $fileName;
+        $relativePath = 'uploads/chat/' . $fileName;
+
+        if (!move_uploaded_file($file['tmp_name'], $destination)) {
+            responderMensagem(false, 'Não foi possível salvar o arquivo enviado.', [], 500);
+        }
+
+        @chmod($destination, 0644);
+        $arquivoSalvo = $destination;
+        $conteudo = $relativePath;
+    } elseif ($conteudo === '') {
+        responderMensagem(false, 'Digite uma mensagem para enviar.', [], 400);
     }
 
-    // 5. Inserir no Banco
-    $sql_insert = "INSERT INTO mensagem 
-                    (id_conversa_fk, id_remetente_fk, tipo_remetente, conteudo, tipo_conteudo, arquivo_nome, data_envio)
-                   VALUES
-                    (:conversa, :remetente_id, :remetente_tipo, :conteudo, :tipo_cont, :arq_nome, NOW())";
-                    
-    $stmt = $conn->prepare($sql_insert);
-    $stmt->execute([
-        ':conversa' => $conversa_id,
-        ':remetente_id' => $user_id_logado,
-        ':remetente_tipo' => $user_tipo_logado,
+    $sqlInsert = "
+        INSERT INTO mensagem
+            (id_conversa_fk, id_remetente_fk, tipo_remetente, conteudo, tipo_conteudo, arquivo_nome, data_envio)
+        VALUES
+            (:conversa, :remetente_id, :remetente_tipo, :conteudo, :tipo_conteudo, :arquivo_nome, NOW())
+    ";
+
+    $stmtInsert = $conn->prepare($sqlInsert);
+    $stmtInsert->execute([
+        ':conversa' => $conversaId,
+        ':remetente_id' => $userId,
+        ':remetente_tipo' => $userTipo,
         ':conteudo' => $conteudo,
-        ':tipo_cont' => $tipo_conteudo,
-        ':arq_nome' => $arquivo_nome_original
+        ':tipo_conteudo' => $tipoConteudo,
+        ':arquivo_nome' => $arquivoNomeOriginal,
     ]);
 
-    date_default_timezone_set('America/Sao_Paulo');
-    echo json_encode([
-        'success' => true,
-        'message' => 'Enviado com sucesso.',
-        'timestamp' => date('H:i, d/m/Y'),
-        'conteudo' => $conteudo,
-        'tipo' => $tipo_conteudo
-    ]);
+    $messageId = (int) $conn->lastInsertId();
 
-} catch (Exception $e) {
-    // Retorna 200 com success:false para o JS tratar a mensagem de erro amigavelmente
-    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    $stmtMessage = $conn->prepare(
+        'SELECT id_mensagem, conteudo, tipo_conteudo, arquivo_nome, data_envio FROM mensagem WHERE id_mensagem = :id LIMIT 1'
+    );
+    $stmtMessage->execute([':id' => $messageId]);
+    $savedMessage = $stmtMessage->fetch(PDO::FETCH_ASSOC) ?: [];
+
+    $dataEnvio = $savedMessage['data_envio'] ?? date('Y-m-d H:i:s');
+
+    responderMensagem(true, 'Mensagem enviada com sucesso.', [
+        'id_mensagem' => $messageId,
+        'conteudo' => $savedMessage['conteudo'] ?? $conteudo,
+        'tipo_conteudo' => $savedMessage['tipo_conteudo'] ?? $tipoConteudo,
+        'arquivo_nome' => $savedMessage['arquivo_nome'] ?? $arquivoNomeOriginal,
+        'data_envio' => $dataEnvio,
+        'data_formatada' => date('H:i, d/m/Y', strtotime($dataEnvio)),
+        'sou_eu' => true,
+    ]);
+} catch (Throwable $e) {
+    if ($arquivoSalvo && is_file($arquivoSalvo)) {
+        @unlink($arquivoSalvo);
+    }
+
+    error_log('Erro ao enviar mensagem: ' . $e->getMessage());
+    responderMensagem(false, 'Não foi possível enviar a mensagem. Tente novamente.', [], 500);
 }
-?>
