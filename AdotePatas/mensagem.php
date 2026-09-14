@@ -2,6 +2,7 @@
 session_start();
 
 require_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/chat-read-schema.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
@@ -59,9 +60,9 @@ if (!$conversaId) {
 $tipoConteudo = 'texto';
 $arquivoNomeOriginal = null;
 $arquivoSalvo = null;
+$readReceiptsEnabled = adotePatasEnsureMessageReadSchema($conn);
 
 try {
-    // Placeholders únicos evitam HY093 quando ATTR_EMULATE_PREPARES está desativado.
     $sqlPermissao = "
         SELECT id_conversa
         FROM conversa
@@ -104,25 +105,49 @@ try {
             responderMensagem(false, $uploadErrors[$code] ?? 'Falha ao receber o arquivo.', [], 400);
         }
 
-        if ((int) $file['size'] > 10 * 1024 * 1024) {
-            responderMensagem(false, 'O arquivo deve ter no máximo 10 MB.', [], 413);
-        }
-
         $extension = strtolower(pathinfo((string) $file['name'], PATHINFO_EXTENSION));
         $arquivoNomeOriginal = basename((string) $file['name']);
 
         $imageExtensions = ['webp', 'gif', 'jpg', 'jpeg', 'png'];
+        $videoExtensions = ['mp4', 'webm', 'mov'];
         $documentExtensions = ['pdf', 'doc', 'docx', 'txt', 'rtf'];
 
         if (in_array($extension, $imageExtensions, true)) {
             $tipoConteudo = 'imagem';
 
+            if ((int) $file['size'] > 10 * 1024 * 1024) {
+                responderMensagem(false, 'A imagem deve ter no máximo 10 MB.', [], 413);
+            }
+
             $imageInfo = @getimagesize($file['tmp_name']);
             if ($imageInfo === false) {
                 responderMensagem(false, 'A imagem enviada é inválida.', [], 400);
             }
+        } elseif (in_array($extension, $videoExtensions, true)) {
+            $tipoConteudo = 'video';
+
+            if ((int) $file['size'] > 25 * 1024 * 1024) {
+                responderMensagem(false, 'O vídeo deve ter no máximo 25 MB.', [], 413);
+            }
+
+            if (function_exists('finfo_open')) {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mime = $finfo ? (string) finfo_file($finfo, $file['tmp_name']) : '';
+                if ($finfo) {
+                    finfo_close($finfo);
+                }
+
+                $allowedVideoMimes = ['video/mp4', 'video/webm', 'video/quicktime', 'application/octet-stream'];
+                if ($mime !== '' && !in_array($mime, $allowedVideoMimes, true)) {
+                    responderMensagem(false, 'O arquivo enviado não é um vídeo válido.', [], 400);
+                }
+            }
         } elseif (in_array($extension, $documentExtensions, true)) {
             $tipoConteudo = 'arquivo';
+
+            if ((int) $file['size'] > 10 * 1024 * 1024) {
+                responderMensagem(false, 'O documento deve ter no máximo 10 MB.', [], 413);
+            }
         } else {
             responderMensagem(false, 'Formato de arquivo não suportado.', [], 400);
         }
@@ -166,8 +191,13 @@ try {
 
     $messageId = (int) $conn->lastInsertId();
 
+    $selectFields = 'id_mensagem, conteudo, tipo_conteudo, arquivo_nome, data_envio';
+    if ($readReceiptsEnabled) {
+        $selectFields .= ', lida, data_leitura';
+    }
+
     $stmtMessage = $conn->prepare(
-        'SELECT id_mensagem, conteudo, tipo_conteudo, arquivo_nome, data_envio FROM mensagem WHERE id_mensagem = :id LIMIT 1'
+        "SELECT {$selectFields} FROM mensagem WHERE id_mensagem = :id LIMIT 1"
     );
     $stmtMessage->execute([':id' => $messageId]);
     $savedMessage = $stmtMessage->fetch(PDO::FETCH_ASSOC) ?: [];
@@ -182,6 +212,9 @@ try {
         'data_envio' => $dataEnvio,
         'data_formatada' => date('H:i, d/m/Y', strtotime($dataEnvio)),
         'sou_eu' => true,
+        'lida' => $readReceiptsEnabled ? (bool) ($savedMessage['lida'] ?? false) : false,
+        'data_leitura' => $readReceiptsEnabled ? ($savedMessage['data_leitura'] ?? null) : null,
+        'read_receipts_enabled' => $readReceiptsEnabled,
     ]);
 } catch (Throwable $e) {
     if ($arquivoSalvo && is_file($arquivoSalvo)) {
