@@ -7,6 +7,8 @@ ob_start();
 require dirname(__DIR__) . '/chat.php';
 $html = ob_get_clean();
 
+$baseUrl = htmlspecialchars(ADOTE_PATAS_BASE_URL, ENT_QUOTES, 'UTF-8');
+
 // O chat legado ainda pode gerar caminhos locais com base em SERVER_NAME.
 // Na rota por diretório, normaliza tudo para a base real calculada pelo roteamento.
 $legacyLocalBase = '/TCC-AdotePatas/AdotePatas/';
@@ -14,17 +16,29 @@ if (ADOTE_PATAS_BASE_URL !== $legacyLocalBase) {
     $html = str_replace($legacyLocalBase, ADOTE_PATAS_BASE_URL, $html);
 }
 
-// Garante explicitamente o caminho correto dos assets principais do chat.
+// Remove o link legado do chat para evitar que uma rota relativa incorreta fique em cache.
 $html = preg_replace(
-    '~href="[^"]*assets/css/pages/chat/chat\.css"~',
-    'href="' . htmlspecialchars(ADOTE_PATAS_BASE_URL, ENT_QUOTES, 'UTF-8') . 'assets/css/pages/chat/chat.css"',
+    '~<link[^>]+href="[^"]*assets/css/pages/chat/chat\.css[^"]*"[^>]*>~i',
+    '',
     $html,
     1
 );
 
+// Carrega os estilos essenciais diretamente pela raiz do projeto.
+// Isso evita depender dos @imports do chat.css para montar header/global.
+$chatStyles = <<<HTML
+    <link rel="stylesheet" href="{$baseUrl}assets/css/global/global.css?v=20260913-2">
+    <link rel="stylesheet" href="{$baseUrl}assets/css/pages/chat/partials/header.css?v=20260913-2">
+    <link rel="stylesheet" href="{$baseUrl}assets/css/pages/chat/partials/offcanvas.css?v=20260913-2">
+    <link rel="stylesheet" href="{$baseUrl}assets/css/pages/chat/chat.css?v=20260913-2">
+HTML;
+
+$html = str_replace('</head>', $chatStyles . "\n</head>", $html);
+
+// Garante explicitamente o caminho correto do JavaScript principal do chat.
 $html = preg_replace(
     '~src="[^"]*assets/js/pages/chat/file-size-upload\.js"~',
-    'src="' . htmlspecialchars(ADOTE_PATAS_BASE_URL, ENT_QUOTES, 'UTF-8') . 'assets/js/pages/chat/file-size-upload.js"',
+    'src="' . $baseUrl . 'assets/js/pages/chat/file-size-upload.js?v=20260913-2"',
     $html,
     1
 );
