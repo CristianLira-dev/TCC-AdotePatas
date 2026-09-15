@@ -20,6 +20,13 @@ $baseUrl = ADOTE_PATAS_BASE_URL;
 $fotoPerfil = null;
 $paginaAtual = $_GET['page'] ?? 'perfil';
 
+// Garante que a análise do admin use a rota limpa, inclusive quando /perfil/ é a página atual.
+$html = str_replace(
+    "fetch('aprovar-pet.php'",
+    "fetch('" . $baseUrl . "aprovar-pet/'",
+    $html
+);
+
 // Usa uma versão fixa do player para evitar mudanças inesperadas no @latest.
 $html = str_replace(
     'https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js',
@@ -134,6 +141,98 @@ HTML;
 CSS;
 
     $html = str_replace('</head>', $styles . "\n</head>", $html);
+}
+
+// O painel de análise passa a oferecer também a recusa do cadastro do pet.
+if ($paginaAtual === 'pet-analise' && ($_SESSION['user_tipo'] ?? '') === 'admin') {
+    $html = preg_replace_callback(
+        '~(<button class="btn btn-sm btn-success btn-aprovar-pet"[^>]*data-pet-id="(\d+)"[^>]*>.*?</button>)~s',
+        static function (array $matches): string {
+            $petId = $matches[2];
+            return $matches[1]
+                . '<button type="button" class="btn btn-sm btn-outline-danger btn-recusar-pet ms-2" data-pet-id="'
+                . $petId
+                . '" title="Recusar Pet"><i class="fa-solid fa-xmark"></i></button>';
+        },
+        $html
+    );
+
+    $rejectEndpoint = json_encode(
+        $baseUrl . 'recusar-pet/',
+        JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+    );
+
+    $analysisScript = <<<HTML
+<script id="pet-analysis-rejection">
+document.addEventListener('DOMContentLoaded', function () {
+    const petsGrid = document.getElementById('petsAnaliseGrid');
+    if (!petsGrid) return;
+
+    petsGrid.addEventListener('click', async function (event) {
+        const rejectButton = event.target.closest('.btn-recusar-pet');
+        if (!rejectButton) return;
+
+        event.preventDefault();
+
+        const petId = rejectButton.dataset.petId;
+        if (!window.confirm('Deseja recusar este pet? O responsável será avisado por e-mail.')) {
+            return;
+        }
+
+        const originalHtml = rejectButton.innerHTML;
+        rejectButton.disabled = true;
+        rejectButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+        try {
+            const response = await fetch({$rejectEndpoint}, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json'
+                },
+                body: 'id_pet=' + encodeURIComponent(petId)
+            });
+
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Não foi possível recusar o pet.');
+            }
+
+            const petCard = document.getElementById('pet-card-' + petId);
+            if (petCard) {
+                petCard.remove();
+            }
+
+            const counter = document.getElementById('contador-pets');
+            if (counter) {
+                const currentCount = Number.parseInt(counter.textContent, 10);
+                if (!Number.isNaN(currentCount)) {
+                    counter.textContent = String(Math.max(0, currentCount - 1));
+                }
+            }
+
+            if (typeof showToast === 'function') {
+                showToast(result.message, 'success');
+            } else {
+                window.alert(result.message);
+            }
+        } catch (error) {
+            rejectButton.disabled = false;
+            rejectButton.innerHTML = originalHtml;
+
+            const message = error instanceof Error ? error.message : 'Não foi possível recusar o pet.';
+            if (typeof showToast === 'function') {
+                showToast(message, 'danger');
+            } else {
+                window.alert(message);
+            }
+        }
+    });
+});
+</script>
+HTML;
+
+    $html = str_replace('</body>', $analysisScript . "\n</body>", $html);
 }
 
 echo $html;

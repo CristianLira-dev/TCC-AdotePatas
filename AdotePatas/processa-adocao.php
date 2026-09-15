@@ -3,6 +3,7 @@ session_start();
 
 require_once __DIR__ . '/route-bootstrap.php';
 include_once __DIR__ . '/conexao.php';
+require_once __DIR__ . '/email-service.php';
 
 $base_path = ADOTE_PATAS_BASE_URL;
 
@@ -214,6 +215,32 @@ try {
     ]);
 
     $conn->commit();
+
+    // O envio de e-mail não interfere na conclusão da solicitação caso o SMTP falhe.
+    try {
+        $stmt_adotante = $conn->prepare(
+            "SELECT nome, email
+             FROM usuario
+             WHERE id_usuario = :id_usuario
+             LIMIT 1"
+        );
+        $stmt_adotante->execute([':id_usuario' => $id_usuario_adotante]);
+        $adotante = $stmt_adotante->fetch(PDO::FETCH_ASSOC);
+
+        if ($adotante && !empty($adotante['email'])) {
+            adotePatasSendEmail(
+                (string) $adotante['email'],
+                (string) ($adotante['nome'] ?? ''),
+                'Recebemos seu formulário de adoção',
+                'Formulário enviado com sucesso',
+                'Recebemos seu formulário para adotar ' . $pet['nome'] . '. O responsável pelo pet já pode analisar as informações e conversar com você pelo chat.',
+                'Acompanhar conversa',
+                adotePatasAppUrl() . '/chat/?id=' . urlencode((string) $id_conversa)
+            );
+        }
+    } catch (Throwable $emailError) {
+        error_log('Erro ao preparar e-mail do formulário de adoção: ' . $emailError->getMessage());
+    }
 
     $_SESSION['mensagem_status'] = 'Solicitação enviada com sucesso. A conversa com o responsável pelo pet foi iniciada.';
     $_SESSION['tipo_mensagem'] = 'success';
