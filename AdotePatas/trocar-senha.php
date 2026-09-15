@@ -235,9 +235,9 @@ if (!$token) {
     showToast(result.message, 'success');
     resetForm.classList.add('hidden');
     
-    // Redireciona para login com animação - CORRIGIDO
+    // Redireciona diretamente para a rota limpa de login.
     setTimeout(() => {
-        window.location.href = 'autenticacao.php?tab=login&animation=success&message=Senha+alterada+com+sucesso!';
+        window.location.href = '/login/?animation=success&message=Senha+alterada+com+sucesso!';
     }, 1);
 } else {
                     showToast(result.message || "Ocorreu um erro desconhecido.", 'danger');
