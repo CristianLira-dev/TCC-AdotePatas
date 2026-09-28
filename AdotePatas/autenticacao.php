@@ -1,7 +1,7 @@
 <?php
 // Inclui a conexão com o banco de dados
 include_once 'conexao.php';
-session_start();
+appStartSession();
 
 // --- FUNÇÕES DE VALIDAÇÃO (PHP) ---
 
@@ -92,10 +92,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // --- CASO 1: LOGIN ---
         case 'login':
             $active_tab = 'login';
-            $email = $_POST['email'] ?? '';
+            $email = strtolower(trim((string) ($_POST['email'] ?? '')));
             $senha = $_POST['senha'] ?? '';
-            
-            if (empty($email) || empty($senha)) {
+
+            if (!appRateLimit('login-ip', 50, 3600, appClientIp())
+                || !appRateLimit('login-account', 10, 900, $email)) {
+                $mensagem_status = "Muitas tentativas de acesso. Aguarde 15 minutos e tente novamente.";
+                $tipo_mensagem = 'danger';
+            } elseif (empty($email) || empty($senha)) {
                 $mensagem_status = "Por favor, preencha o e-mail e a senha.";
                 $tipo_mensagem = 'danger';
             } else {
@@ -110,11 +114,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
                     
                     if ($usuario && password_verify($senha, $usuario['senha'])) {
-                        session_start();
-                        $_SESSION['nome'] = $usuario['nome'];
-                        $_SESSION['user_id'] = $usuario['id_usuario'];
-                        $_SESSION['user_email'] = $email;
-                        $_SESSION['user_tipo'] = 'usuario';
+                        appCompleteLogin((int) $usuario['id_usuario'], 'usuario', (string) $usuario['nome'], $email);
                         $logado = true;
                         header("Location:  ./");
                         exit;
@@ -133,11 +133,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
                         if ($usuario && password_verify($senha, $usuario['senha'])) {
-                            session_start();
-                            $_SESSION['nome'] = $usuario['nome'];
-                            $_SESSION['user_id'] = $usuario['id_ong'];
-                            $_SESSION['user_email'] = $email;
-                            $_SESSION['user_tipo'] = 'ong';
+                            appCompleteLogin((int) $usuario['id_ong'], 'ong', (string) $usuario['nome'], $email);
                             $logado = true;
                             header("Location: ./ ");
                             exit;
@@ -156,12 +152,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $stmt->execute();
                         $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                        if ($admin && ($senha == $admin['senha'])) {
-                            session_start();
-                            $_SESSION['nome'] = $admin['nome'];
-                            $_SESSION['user_id'] = $admin['id_admin'];
-                            $_SESSION['user_email'] = $email;
-                            $_SESSION['user_tipo'] = 'admin'; // Define tipo como admin
+                        $adminPassword = (string) ($admin['senha'] ?? '');
+                        $adminAuthenticated = $admin && password_verify($senha, $adminPassword);
+
+                        // Migração segura e automática para instalações antigas que ainda
+                        // possuem a senha administrativa em texto puro.
+                        if ($admin && !$adminAuthenticated && (password_get_info($adminPassword)['algo'] ?? 0) === 0
+                            && hash_equals($adminPassword, $senha)) {
+                            $newHash = password_hash($senha, PASSWORD_DEFAULT);
+                            $updatePassword = $conn->prepare(
+                                'UPDATE administrador SET senha = :senha WHERE id_admin = :id_admin'
+                            );
+                            $updatePassword->execute([
+                                ':senha' => $newHash,
+                                ':id_admin' => (int) $admin['id_admin'],
+                            ]);
+                            $adminAuthenticated = true;
+                        }
+
+                        if ($adminAuthenticated) {
+                            appCompleteLogin((int) $admin['id_admin'], 'admin', (string) $admin['nome'], $email);
                             $logado = true;
                             
                             // Redireciona direto para o painel admin dentro do perfil

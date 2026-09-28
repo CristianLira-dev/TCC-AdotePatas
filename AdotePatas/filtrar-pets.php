@@ -1,6 +1,12 @@
 <?php
-session_start();
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 include_once 'conexao.php';
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit('Método não permitido.');
+}
 
 // --- 1. Validação e Segurança ---
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_tipo'])) {
@@ -85,6 +91,8 @@ try {
     if (!empty($conditions)) {
         $sql .= " AND " . implode(" AND ", $conditions);
     }
+
+    $sql .= " ORDER BY p.id_pet DESC LIMIT 100";
     
     // --- 9. Executar e Construir o HTML ---
     $stmt = $conn->prepare($sql);

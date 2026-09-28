@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 
 include_once 'conexao.php';
 

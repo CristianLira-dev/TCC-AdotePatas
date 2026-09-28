@@ -1,0 +1,12 @@
+AdotePatas/.env
+AdotePatas/.env.*
+!AdotePatas/.env.example
+AdotePatas/vendor/
+AdotePatas/uploads/**
+!AdotePatas/uploads/.gitkeep
+!AdotePatas/uploads/**/
+!AdotePatas/uploads/**/.htaccess
+*.log
+.phpunit.cache/
+.idea/
+.vscode/

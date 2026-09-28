@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 
 require_once __DIR__ . '/route-bootstrap.php';
 include_once __DIR__ . '/conexao.php';
@@ -215,6 +216,26 @@ try {
     ]);
 
     $conn->commit();
+    appAudit($conn, 'create', 'solicitacao', (int) $id_solicitacao, [
+        'pet_id' => (int) $id_pet,
+        'conversation_id' => (int) $id_conversa,
+    ]);
+    appNotify(
+        $conn,
+        $id_protetor_final,
+        $tipo_protetor_final,
+        'Novo interesse de adoção',
+        'Uma pessoa demonstrou interesse em adotar ' . $pet['nome'] . '.',
+        'chat/?id=' . $id_conversa
+    );
+    appNotify(
+        $conn,
+        $id_usuario_adotante,
+        'usuario',
+        'Solicitação enviada',
+        'Seu interesse em adotar ' . $pet['nome'] . ' foi registrado.',
+        'chat/?id=' . $id_conversa
+    );
 
     // O envio de e-mail não interfere na conclusão da solicitação caso o SMTP falhe.
     try {

@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 
 include_once 'conexao.php'; // 1. Inclui a conexão com o banco
 
@@ -14,11 +15,6 @@ if (isset($_SESSION['toast_message'])) {
     // Limpa a mensagem da sessão após usar
     unset($_SESSION['toast_message']);
     unset($_SESSION['toast_type']);
-}
-
-// DEBUG: Log para verificar se as mensagens estão chegando
-if (!empty($toast_message)) {
-    error_log("DEBUG perfil.php - Toast message found: " . $toast_message);
 }
 
 // 2. Segurança: Verifica se o usuário está logado
@@ -61,7 +57,7 @@ try {
     }
 } catch (PDOException $e) {
     $erro = "Ocorreu um erro ao buscar seus dados. Tente novamente.";
-    echo "Erro no perfil.php: " . $e->getMessage();
+    error_log('Erro ao carregar perfil: ' . $e->getMessage());
 }
 
 /* ==========================================================================
@@ -96,6 +92,7 @@ if ($pagina == 'perfil') {
 $todos_usuarios = [];
 $todas_ongs = [];
 $todos_pets = [];
+$solicitacoes_exclusao = [];
 
 // Variáveis do Dashboard
 $total_users_count = 0;
@@ -132,8 +129,16 @@ if ($user_tipo == 'admin' && $pagina == 'painel-admin') {
         $stmt = $conn->query($sql_pets_admin);
         $todos_pets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        $stmt = $conn->query(
+            "SELECT id_request, account_id, account_type, requested_at"
+            . " FROM account_deletion_request WHERE status = 'pending'"
+            . " ORDER BY requested_at ASC"
+        );
+        $solicitacoes_exclusao = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
     } catch (PDOException $e) {
-        $erro = "Erro ao carregar dados do painel: " . $e->getMessage();
+        $erro = "Não foi possível carregar os dados do painel.";
+        error_log('Erro ao carregar painel administrativo: ' . $e->getMessage());
     }
 }
 
@@ -171,7 +176,8 @@ if ($pagina == 'meus-pets') {
         $stmt_pets->execute();
         $pets = $stmt_pets->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
-        $erro_pets = "Erro ao buscar seus pets: " . $e->getMessage();
+        $erro_pets = "Não foi possível carregar seus pets.";
+        error_log('Erro ao buscar pets do perfil: ' . $e->getMessage());
     }
 }
 
@@ -205,7 +211,7 @@ if ($pagina == 'pets-curtidos') {
         $pets_curtidos = $stmt_curtidos->fetchAll(PDO::FETCH_ASSOC);
 
     } catch (Exception $e) {
-        $erro_pets_curtidos = "Erro ao buscar seus pets curtidos: " . $e->getMessage();
+        $erro_pets_curtidos = "Não foi possível carregar seus pets curtidos.";
         error_log("Erro ao buscar pets curtidos: " . $e->getMessage());
     }
 }
@@ -239,16 +245,9 @@ if ($pagina == 'pet-analise') {
         $pets_analise = $stmt_analise->fetchAll(PDO::FETCH_ASSOC);
         
     } catch (PDOException $e) {
-        $erro_analise = "Erro ao buscar pets para análise: " . $e->getMessage();
+        $erro_analise = "Não foi possível carregar os pets para análise.";
         error_log("Erro ao buscar pets em análise: " . $e->getMessage());
     }
-}
-
-// DEBUG: Verificar se as variáveis de sessão estão chegando
-if (isset($_SESSION['toast_message'])) {
-    error_log("DEBUG perfil.php - Toast message: " . $_SESSION['toast_message']);
-} else {
-    error_log("DEBUG perfil.php - Nenhuma toast message na sessão");
 }
 
 ?>
@@ -416,7 +415,7 @@ if (isset($_SESSION['toast_message'])) {
                                                 <a href="pet-detalhe/<?php echo $p['id_pet']; ?>" target="_blank" class="btn btn-sm btn-info text-white" title="Ver"><i class="fa-solid fa-eye"></i></a>
                                                 <!-- Reusa a página de editar pet, passando o ID -->
                                                 <a href="editar-pet.php?id=<?php echo $p['id_pet']; ?>" class="btn btn-sm btn-primary" title="Editar"><i class="fa-solid fa-pencil"></i></a>
-                                                <button onclick="confirmarExclusao('admin-acoes.php?acao=excluir_pet&id=<?php echo $p['id_pet']; ?>')" class="btn btn-sm btn-danger" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                                                <button type="button" onclick="confirmarExclusao('excluir_pet', <?php echo (int) $p['id_pet']; ?>)" class="btn btn-sm btn-danger" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                                             </td>
                                         </tr>
                                         <?php endforeach; ?>
@@ -448,7 +447,7 @@ if (isset($_SESSION['toast_message'])) {
                                             <td><?php echo htmlspecialchars($u['email']); ?></td>
                                             <td><?php echo htmlspecialchars($u['cpf']); ?></td>
                                             <td>
-                                                <button onclick="confirmarExclusao('admin-acoes.php?acao=excluir_usuario&id=<?php echo $u['id_usuario']; ?>')" class="btn btn-sm btn-danger" title="Excluir Usuário"><i class="fa-solid fa-user-xmark"></i></button>
+                                                <button type="button" onclick="confirmarExclusao('excluir_usuario', <?php echo (int) $u['id_usuario']; ?>)" class="btn btn-sm btn-danger" title="Excluir Usuário"><i class="fa-solid fa-user-xmark"></i></button>
                                             </td>
                                         </tr>
                                         <?php endforeach; ?>
@@ -468,6 +467,7 @@ if (isset($_SESSION['toast_message'])) {
                                             <th>Nome</th>
                                             <th>CNPJ</th>
                                             <th>Email</th>
+                                            <th>Verificação</th>
                                             <th>Ações</th>
                                         </tr>
                                     </thead>
@@ -479,13 +479,51 @@ if (isset($_SESSION['toast_message'])) {
                                             <td><?php echo htmlspecialchars($o['cnpj']); ?></td>
                                             <td><?php echo htmlspecialchars($o['email']); ?></td>
                                             <td>
-                                                <button onclick="confirmarExclusao('admin-acoes.php?acao=excluir_ong&id=<?php echo $o['id_ong']; ?>')" class="btn btn-sm btn-danger" title="Excluir ONG"><i class="fa-solid fa-trash"></i></button>
+                                                <?php
+                                                $verificationStatus = $o['verification_status'] ?? 'pending';
+                                                $verificationLabels = ['verified' => 'Verificada', 'rejected' => 'Recusada', 'pending' => 'Pendente'];
+                                                $verificationClasses = ['verified' => 'success', 'rejected' => 'danger', 'pending' => 'secondary'];
+                                                ?>
+                                                <span class="badge bg-<?php echo $verificationClasses[$verificationStatus] ?? 'secondary'; ?>">
+                                                    <?php echo $verificationLabels[$verificationStatus] ?? 'Pendente'; ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button type="button" onclick="alterarVerificacaoOng('verificar_ong', <?php echo (int) $o['id_ong']; ?>)" class="btn btn-sm btn-success" title="Verificar ONG"><i class="fa-solid fa-circle-check"></i></button>
+                                                <button type="button" onclick="alterarVerificacaoOng('rejeitar_ong', <?php echo (int) $o['id_ong']; ?>)" class="btn btn-sm btn-warning" title="Recusar verificação"><i class="fa-solid fa-ban"></i></button>
+                                                <button type="button" onclick="confirmarExclusao('excluir_ong', <?php echo (int) $o['id_ong']; ?>)" class="btn btn-sm btn-danger" title="Excluir ONG"><i class="fa-solid fa-trash"></i></button>
                                             </td>
                                         </tr>
                                         <?php endforeach; ?>
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+
+                        <div class="admin-table-card">
+                            <h3 class="mb-3 text-secondary">Solicitações de exclusão (<?php echo count($solicitacoes_exclusao); ?>)</h3>
+                            <?php if ($solicitacoes_exclusao === []): ?>
+                                <p class="text-muted mb-0">Nenhuma solicitação pendente.</p>
+                            <?php else: ?>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light"><tr><th>Protocolo</th><th>Conta</th><th>Solicitada em</th><th>Ações</th></tr></thead>
+                                        <tbody>
+                                        <?php foreach ($solicitacoes_exclusao as $request): ?>
+                                            <tr>
+                                                <td>#<?php echo (int) $request['id_request']; ?></td>
+                                                <td><?php echo $request['account_type'] === 'ong' ? 'ONG' : 'Usuário'; ?> #<?php echo (int) $request['account_id']; ?></td>
+                                                <td><?php echo date('d/m/Y H:i', strtotime($request['requested_at'])); ?></td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-danger" onclick="processarExclusaoConta('aprovar_exclusao_conta', <?php echo (int) $request['id_request']; ?>)">Excluir conta</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="processarExclusaoConta('rejeitar_exclusao_conta', <?php echo (int) $request['id_request']; ?>)">Rejeitar</button>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php endif; ?>
                         </div>
 
                     </main>
@@ -870,9 +908,9 @@ $badgeClass = match ($pet['status_disponibilidade']) {
                                                 <a href="editar-pet.php?id=<?php echo $pet['id_pet']; ?>" class="btn btn-sm btn-outline-primary me-2" title="Editar Pet">
                                                     <i class="fa-solid fa-pencil"></i>
                                                 </a>
-                                                <a href="excluir-pet.php?id=<?php echo $pet['id_pet']; ?>" class="btn btn-sm btn-outline-danger btn-excluir-pet" title="Excluir Pet">
+                                                <button type="button" data-pet-id="<?php echo (int) $pet['id_pet']; ?>" class="btn btn-sm btn-outline-danger btn-excluir-pet" title="Excluir Pet">
                                                     <i class="fa-solid fa-trash"></i>
-                                                </a>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -1003,6 +1041,14 @@ $badgeClass = match ($pet['status_disponibilidade']) {
                                     <i class="fa-regular fa-comments fa-fw me-2"></i> Chats
                                 </a>
                             <?php endif; ?>
+                            <a class="nav-link" href="notificacoes/">
+                                <i class="fa-regular fa-bell fa-fw me-2"></i> Notificações
+                            </a>
+                            <?php if ($user_tipo !== 'admin'): ?>
+                                <a class="nav-link" href="privacidade-conta/">
+                                    <i class="fa-solid fa-shield-halved fa-fw me-2"></i> Privacidade
+                                </a>
+                            <?php endif; ?>
                             <hr class="my-2">
                             
                             <a class="nav-link logout-link-sidebar" href="sair.php">
@@ -1027,7 +1073,7 @@ $badgeClass = match ($pet['status_disponibilidade']) {
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <a href="#" id="confirmDeleteBtn"><button type="button" class="btn btn-danger">Excluir</button></a>
+                    <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Excluir</button>
                     
                 </div>
             </div>
@@ -1088,7 +1134,7 @@ $badgeClass = match ($pet['status_disponibilidade']) {
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <a href="#" id="genericConfirmBtn" class="btn btn-danger">Sim, Excluir</a>
+                            <button type="button" id="genericConfirmBtn" class="btn btn-danger">Sim, Excluir</button>
                         </div>
                     </div>
                 </div>
@@ -1102,12 +1148,55 @@ $badgeClass = match ($pet['status_disponibilidade']) {
 
     <script>
 
-        function confirmarExclusao(url) {
+        function confirmarExclusao(acao, id) {
             const modalEl = document.getElementById('genericConfirmModal');
             const modal = new bootstrap.Modal(modalEl);
-            document.getElementById('genericConfirmBtn').href = url;
+            const confirmButton = document.getElementById('genericConfirmBtn');
+            confirmButton.dataset.acao = acao;
+            confirmButton.dataset.id = String(id);
             modal.show();
         }
+
+        async function alterarVerificacaoOng(acao, id) {
+            try {
+                const response = await fetch('admin-acoes.php', {
+                    method: 'POST',
+                    body: new URLSearchParams({ acao, id: String(id) })
+                });
+                if (!response.ok) throw new Error('Não foi possível atualizar a verificação.');
+                window.location.reload();
+            } catch (error) {
+                showToast(error.message, 'danger');
+            }
+        }
+
+        async function processarExclusaoConta(acao, id) {
+            if (acao === 'aprovar_exclusao_conta'
+                && !window.confirm('Esta ação excluirá permanentemente a conta e os dados relacionados. Continuar?')) return;
+            try {
+                const response = await fetch('admin-acoes.php', {
+                    method: 'POST',
+                    body: new URLSearchParams({ acao, id: String(id) })
+                });
+                if (!response.ok) throw new Error('Não foi possível processar a solicitação.');
+                window.location.reload();
+            } catch (error) {
+                showToast(error.message, 'danger');
+            }
+        }
+
+        document.getElementById('genericConfirmBtn')?.addEventListener('click', async function () {
+            this.disabled = true;
+            try {
+                const body = new URLSearchParams({ acao: this.dataset.acao, id: this.dataset.id });
+                const response = await fetch('admin-acoes.php', { method: 'POST', body });
+                if (!response.ok) throw new Error('Não foi possível excluir o registro.');
+                window.location.reload();
+            } catch (error) {
+                this.disabled = false;
+                showToast(error.message, 'danger');
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', function() {
             // Só executa se estivermos na página 'meus-pets'
@@ -1131,12 +1220,10 @@ $badgeClass = match ($pet['status_disponibilidade']) {
                             // Previne a ação padrão do link (ir para a página)
                             event.preventDefault(); 
                             
-                            // Pega a URL de exclusão do link clicado
-                            const deleteUrl = deleteButton.href;
-                            
-                            // Define a URL no botão "Confirmar" do modal
+                            const petId = deleteButton.dataset.petId;
+
                             if (confirmDeleteBtn) {
-                                confirmDeleteBtn.href = deleteUrl;
+                                confirmDeleteBtn.dataset.petId = petId;
                             }
                             
                             // Abre o modal
@@ -1148,14 +1235,28 @@ $badgeClass = match ($pet['status_disponibilidade']) {
             
             <?php endif; ?>
         });
+
+        document.getElementById('confirmDeleteBtn')?.addEventListener('click', async function () {
+            this.disabled = true;
+            try {
+                const body = new URLSearchParams({ id: this.dataset.petId });
+                const response = await fetch('excluir-pet.php', { method: 'POST', body });
+                if (!response.ok) throw new Error('Não foi possível excluir o pet.');
+                window.location.reload();
+            } catch (error) {
+                this.disabled = false;
+                showToast(error.message, 'danger');
+            }
+        });
     </script>
 
   <script>
 // Toast para TODAS as páginas (não apenas meus-pets)
 <?php if (!empty($toast_message)): ?>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Exibindo toast:', "<?php echo $toast_message; ?>");
-    showToast("<?php echo addslashes($toast_message); ?>", "<?php echo $toast_type; ?>");
+    const toastMessage = <?php echo json_encode($toast_message, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+    const toastType = <?php echo json_encode($toast_type, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+    showToast(toastMessage, toastType);
 });
 <?php endif; ?>
 

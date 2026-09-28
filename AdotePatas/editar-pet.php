@@ -73,7 +73,12 @@ try {
     $medicacao = $pet['medicacao'] ?? '';
 
 }  catch (Exception $e) {
-    $_SESSION['toast_message'] = $e->getMessage();
+    if ($e instanceof PDOException) {
+        error_log('Erro ao carregar pet para edição: ' . $e->getMessage());
+        $_SESSION['toast_message'] = 'Não foi possível carregar o pet. Tente novamente.';
+    } else {
+        $_SESSION['toast_message'] = $e->getMessage();
+    }
     $_SESSION['toast_type'] = 'danger';
     if ($user_tipo == 'admin') {
         header('Location: perfil?page=painel-admin');
@@ -1637,14 +1642,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const inputGroup = document.createElement('div');
         inputGroup.className = 'alergia-input-group';
         
-        const inputId = `alergia_${Date.now()}`;
-        inputGroup.innerHTML = `
-            <input type="text" name="alergias[]" value="${value}" 
-                   placeholder="Nome da alergia" class="input-style alergia-input" id="${inputId}">
-            <button type="button" class="btn-remove-alergia" ${alergiasContainer.children.length === 0 ? 'disabled' : ''}>
-                <i class="fas fa-times"></i>
-            </button>
-        `;
+        const inputId = `alergia_${Date.now()}_${alergiasContainer.children.length}`;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = 'alergias[]';
+        input.value = value;
+        input.placeholder = 'Nome da alergia';
+        input.className = 'input-style alergia-input';
+        input.id = inputId;
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'btn-remove-alergia';
+        removeButton.disabled = alergiasContainer.children.length === 0;
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-times';
+        removeButton.appendChild(icon);
+        inputGroup.append(input, removeButton);
         
         alergiasContainer.appendChild(inputGroup);
         

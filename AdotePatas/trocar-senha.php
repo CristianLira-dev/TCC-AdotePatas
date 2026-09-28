@@ -3,6 +3,7 @@ include_once 'conexao.php'; // Sua conexão PDO
 
 $error_message = null;
 $token = $_GET['token'] ?? null;
+$tokenHash = $token ? hash('sha256', (string) $token) : null;
 
 // ----------------------------------------------------
 // 1. Validação do Token na Chegada
@@ -14,9 +15,9 @@ if (!$token) {
         $now = date("Y-m-d H:i:s");
         
         // Busca o token no banco para garantir que ele é válido e não expirou.
-        $sql = "SELECT email FROM recuperar_senha_tolken WHERE token = :token AND expires_at > :now LIMIT 1";
+        $sql = "SELECT email FROM recuperar_senha_tolken WHERE (token = :token_hash OR token = :legacy_token) AND expires_at > :now LIMIT 1";
         $stmt = $conn->prepare($sql);
-        $stmt->execute([':token' => $token, ':now' => $now]);
+        $stmt->execute([':token_hash' => $tokenHash, ':legacy_token' => $token, ':now' => $now]);
         $reset_request = $stmt->fetch();
 
         // Se a busca não retornar nada, o token é inválido ou já expirou.

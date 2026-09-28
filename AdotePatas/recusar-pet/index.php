@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once dirname(__DIR__) . '/app/security.php';
+appStartSession();
 
 define('ADOTE_PATAS_ROUTE_WRAPPER', true);
 require_once dirname(__DIR__) . '/route-bootstrap.php';
@@ -32,6 +33,8 @@ try {
         "SELECT p.id_pet,
                 p.nome,
                 p.status_disponibilidade,
+                p.id_usuario_fk,
+                p.id_ong_fk,
                 COALESCE(u.nome, o.nome) AS responsavel_nome,
                 COALESCE(u.email, o.email) AS responsavel_email
          FROM pet p
@@ -61,6 +64,17 @@ try {
          WHERE id_pet = :id_pet"
     );
     $stmtUpdate->execute([':id_pet' => $petId]);
+    appAudit($conn, 'reject', 'pet', (int) $petId);
+    $responsavelTipo = !empty($pet['id_ong_fk']) ? 'ong' : 'usuario';
+    $responsavelId = (int) ($pet['id_ong_fk'] ?: $pet['id_usuario_fk']);
+    appNotify(
+        $conn,
+        $responsavelId,
+        $responsavelTipo,
+        'Cadastro precisa de revisão',
+        'Revise as informações de ' . $pet['nome'] . ' antes de enviar novamente.',
+        'perfil/?page=meus-pets'
+    );
 
     $emailSent = false;
     if (!empty($pet['responsavel_email'])) {

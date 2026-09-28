@@ -267,7 +267,7 @@
 
     const syncExisting = async () => {
       try {
-        const response = await fetch(`${pollUrl}?conversa_id=${conversationId}&ultimo_id=0`, { credentials: 'same-origin', cache: 'no-store' });
+        const response = await fetch(`${pollUrl}?conversa_id=${conversationId}&ultimo_id=0`, { method: 'POST', credentials: 'same-origin', cache: 'no-store' });
         const data = await response.json();
         if (!response.ok || !data.success) return;
 

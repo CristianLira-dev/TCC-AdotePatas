@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 include_once 'conexao.php';
 include_once 'session.php';
 
@@ -110,21 +111,16 @@ $sql = "SELECT
     $google_maps_url = '#'; // URL Padrão
     $endereco_completo_array = [];
 
-    // Constrói a string de busca do endereço
-    if (!empty($pet['doador_logradouro'])) $endereco_completo_array[] = $pet['doador_logradouro'];
-    if (!empty($pet['doador_numero'])) $endereco_completo_array[] = $pet['doador_numero'];
+    // Exibe apenas localização aproximada para preservar o endereço do responsável.
     if (!empty($pet['doador_bairro'])) $endereco_completo_array[] = $pet['doador_bairro'];
     if (!empty($pet['doador_cidade'])) $endereco_completo_array[] = $pet['doador_cidade'];
     if (!empty($pet['doador_estado'])) $endereco_completo_array[] = $pet['doador_estado'];
 
     if (!empty($endereco_completo_array)) {
-        // Formato: "Rua Exemplo, 123, Bairro, Cidade, UF"
+        // Formato aproximado: "Bairro, Cidade, UF"
         $query_string = implode(', ', $endereco_completo_array);
         // Gera a URL de busca do Google Maps
         $google_maps_url = 'https://www.google.com/maps/search/?api=1&query=' . urlencode($query_string);
-    } elseif (!empty($pet['doador_cep'])) {
-        // Fallback: se só tiver o CEP, busca pelo CEP
-        $google_maps_url = 'https://www.google.com/maps/search/?api=1&query=' . urlencode($pet['doador_cep']);
     }
     
     // Define uma foto padrão caso não ache nenhuma
@@ -162,8 +158,9 @@ $sql = "SELECT
     }
 
 } catch (PDOException $e) {
-    echo("Erro em pet-detalhe.php: " . $e->getMessage());
-    exit;
+    error_log('Erro ao carregar detalhes do pet: ' . $e->getMessage());
+    http_response_code(500);
+    exit('Não foi possível carregar os dados do pet. Tente novamente.');
 }
 ?>
 <!DOCTYPE html>
@@ -242,7 +239,7 @@ $sql = "SELECT
             <div class="detalhe-fotos">
 <div class="detalhe-foto-principal shadow-sm clickable-image" style="border-radius: 20px; cursor: pointer;">
     <img id="foto-principal-img" 
-         src="<?php echo $foto_principal; ?>" 
+         src="<?php echo htmlspecialchars($foto_principal, ENT_QUOTES, 'UTF-8'); ?>"
          alt="Foto principal de <?php echo htmlspecialchars($pet['nome']); ?>"
          onerror="this.src='<?php echo $base_path; ?>images/perfil/teste.jpg';">
 </div>
@@ -253,9 +250,9 @@ $sql = "SELECT
                         $caminho_foto_thumb = $base_path . htmlspecialchars($foto['caminho_foto']);
                     ?>
                         <img class="shadow-sm <?php echo ($index == 0) ? 'active' : ''; ?>" 
-                             src="<?php echo $caminho_foto_thumb; ?>" 
+                             src="<?php echo htmlspecialchars($caminho_foto_thumb, ENT_QUOTES, 'UTF-8'); ?>"
                              alt="thumbnail <?php echo $index + 1; ?>"
-                             onclick="mudarFotoPrincipal('<?php echo $caminho_foto_thumb; ?>', this)"
+                             onclick='mudarFotoPrincipal(<?php echo json_encode($caminho_foto_thumb, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>, this)'
                              onerror="this.style.display='none';">
                     <?php endforeach; ?>
                 </div>

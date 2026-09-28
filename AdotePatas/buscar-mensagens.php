@@ -1,11 +1,18 @@
 <?php
-session_start();
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 
 require_once __DIR__ . '/conexao.php';
 require_once __DIR__ . '/chat-read-schema.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'messages' => [], 'error' => 'Método não permitido.']);
+    exit;
+}
 
 function responderPolling(
     bool $success,
@@ -112,6 +119,9 @@ try {
         $message['data_formatada'] = date('H:i, d/m/Y', strtotime($message['data_envio']));
         $message['lida'] = $readReceiptsEnabled ? (bool) ($message['lida'] ?? false) : false;
         $message['data_leitura'] = $readReceiptsEnabled ? ($message['data_leitura'] ?? null) : null;
+        $message['attachment_url'] = ($message['tipo_conteudo'] ?? 'texto') !== 'texto'
+            ? 'chat-anexo/?id=' . $message['id_mensagem']
+            : null;
     }
     unset($message);
 

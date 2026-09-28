@@ -83,53 +83,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $erros['amamentacao'] = "O pet não pode ser cadastrado se não tiver concluído a amamentação.";
     }
 
-// Validação de Upload da Carteirinha (Obrigatório apenas se vacinado)
-if ($status_vacinacao === 'sim') {
-    if (!isset($_FILES['carteira_vacinacao']) || $_FILES['carteira_vacinacao']['error'] != UPLOAD_ERR_OK) {
-        $erros['carteira_vacinacao'] = "É obrigatório enviar a foto ou PDF da carteirinha de vacinação para comprovação, pois o pet foi marcado como vacinado.";
-    } else {
-        // Processar Carteirinha
-        $vacina_file = $_FILES['carteira_vacinacao'];
-        $ext = strtolower(pathinfo($vacina_file['name'], PATHINFO_EXTENSION));
-        $allowed_vacina = ['jpg', 'jpeg', 'png', 'pdf', 'webp'];
-        
-        if (!in_array($ext, $allowed_vacina)) {
-            $erros['carteira_vacinacao'] = "Formato da carteirinha inválido. Use JPG, PNG, WEBP ou PDF.";
-        } else {
-            $upload_dir_vacina = 'uploads/documentos/';
-            if (!is_dir($upload_dir_vacina)) mkdir($upload_dir_vacina, 0755, true);
-            
-            $nome_vacina = uniqid('vacina_') . '.' . $ext;
-            $caminho_vacina = $upload_dir_vacina . $nome_vacina;
-            
-            if (!move_uploaded_file($vacina_file['tmp_name'], $caminho_vacina)) {
-                $erros['carteira_vacinacao'] = "Erro ao salvar carteirinha de vacinação.";
-            }
-        }
-    }
-} else {
-    // Se não for vacinado, não é obrigatório enviar carteirinha
-    // Mas se enviou, processa normalmente (opcional)
-    if (isset($_FILES['carteira_vacinacao']) && $_FILES['carteira_vacinacao']['error'] == UPLOAD_ERR_OK) {
-        $vacina_file = $_FILES['carteira_vacinacao'];
-        $ext = strtolower(pathinfo($vacina_file['name'], PATHINFO_EXTENSION));
-        $allowed_vacina = ['jpg', 'jpeg', 'png', 'pdf', 'webp'];
-        
-        if (!in_array($ext, $allowed_vacina)) {
-            $erros['carteira_vacinacao'] = "Formato da carteirinha inválido. Use JPG, PNG, WEBP ou PDF.";
-        } else {
-            $upload_dir_vacina = 'uploads/documentos/';
-            if (!is_dir($upload_dir_vacina)) mkdir($upload_dir_vacina, 0755, true);
-            
-            $nome_vacina = uniqid('vacina_') . '.' . $ext;
-            $caminho_vacina = $upload_dir_vacina . $nome_vacina;
-            
-            if (!move_uploaded_file($vacina_file['tmp_name'], $caminho_vacina)) {
-                $erros['carteira_vacinacao'] = "Erro ao salvar carteirinha de vacinação.";
-            }
-        }
-    } else {
-        $caminho_vacina = null; // Não é vacinado e não enviou arquivo
+$vaccinationUpload = $_FILES['carteira_vacinacao'] ?? null;
+if ($status_vacinacao === 'sim' && (!$vaccinationUpload || ($vaccinationUpload['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK)) {
+    $erros['carteira_vacinacao'] = 'Envie a carteirinha de vacinação em JPG, PNG, WEBP ou PDF.';
+} elseif ($vaccinationUpload && ($vaccinationUpload['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
+    try {
+        $caminho_vacina = appStoreUploadedFile(
+            $vaccinationUpload,
+            'uploads/documentos',
+            'vacina_',
+            appVaccinationDocumentMimeMap(),
+            8 * 1024 * 1024
+        );
+    } catch (RuntimeException $error) {
+        $erros['carteira_vacinacao'] = $error->getMessage();
     }
 }
     // Validação das Fotos do Pet
@@ -137,15 +104,25 @@ if ($status_vacinacao === 'sim') {
         $total_files = count($_FILES['fotos_novas']['name']);
         if ($total_files > 5) $erros['fotos'] = "Máximo 5 fotos.";
         
-        $upload_dir = 'uploads/pets/';
-        if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
-
         for ($i = 0; $i < $total_files; $i++) {
             if ($_FILES['fotos_novas']['error'][$i] == UPLOAD_ERR_OK) {
-                $tmp_name = $_FILES['fotos_novas']['tmp_name'][$i];
-                $name = uniqid() . '.webp';
-                if (move_uploaded_file($tmp_name, $upload_dir . $name)) {
-                    $fotos_salvas_paths[] = $upload_dir . $name;
+                $photo = [
+                    'name' => $_FILES['fotos_novas']['name'][$i],
+                    'type' => $_FILES['fotos_novas']['type'][$i] ?? '',
+                    'tmp_name' => $_FILES['fotos_novas']['tmp_name'][$i],
+                    'error' => $_FILES['fotos_novas']['error'][$i],
+                    'size' => $_FILES['fotos_novas']['size'][$i],
+                ];
+                try {
+                    $fotos_salvas_paths[] = appStoreUploadedFile(
+                        $photo,
+                        'uploads/pets',
+                        'pet_',
+                        appImageMimeMap(),
+                        5 * 1024 * 1024
+                    );
+                } catch (RuntimeException $error) {
+                    $erros['fotos'] = $error->getMessage();
                 }
             }
         }
@@ -155,15 +132,12 @@ if ($status_vacinacao === 'sim') {
 
     // 3. Inserção
     if (!empty($erros)) {
-
-        echo "<pre>";
-        echo "<h1>OPS! Erros encontrados:</h1>";
-        print_r($erros); // Mostra quais campos falharam
-        echo "<hr>";
-        echo "<h1>O que chegou no POST:</h1>";
-        print_r($_POST); // Mostra o que o formulário enviou
-        echo "</pre>";
-        exit; // PARA TUDO AQUI. Não deixa redirecionar.
+        if ($caminho_vacina) {
+            @unlink(__DIR__ . '/' . $caminho_vacina);
+        }
+        foreach ($fotos_salvas_paths as $path) {
+            @unlink(__DIR__ . '/' . $path);
+        }
         $_SESSION['erros_form'] = $erros;
         $_SESSION['mensagem_status'] = "Por favor, corrija os erros abaixo.";
         $_SESSION['tipo_mensagem'] = 'danger';
@@ -218,6 +192,7 @@ $stmt->execute([
             }
 
             $conn->commit();
+            appAudit($conn, 'create', 'pet', (int) $id_pet);
             unset($_SESSION['form_data']);
             unset($_SESSION['erros_form']);
             $_SESSION['toast_message'] = "Pet cadastrado! Aguardando análise da carteirinha de vacinação.";
@@ -225,16 +200,15 @@ $stmt->execute([
             header("Location: perfil?page=meus-pets");
             exit;
 
-        } catch (PDOException $e) {
-            $conn->rollBack();
+        } catch (Throwable $e) {
+            if ($conn->inTransaction()) {
+                $conn->rollBack();
+            }
             // Limpeza de arquivos em caso de erro
-            if ($caminho_vacina && file_exists($caminho_vacina)) @unlink($caminho_vacina);
-            foreach ($fotos_salvas_paths as $p) if (file_exists($p)) @unlink($p);
-            
-            
-            $_SESSION['mensagem_status'] = "Erro no banco: " . $e->getMessage();
-            echo "<h1>Erro no Banco de Dados:</h1>";
-            echo "<pre>" . $e->getMessage() . "</pre>";
+            if ($caminho_vacina) @unlink(__DIR__ . '/' . $caminho_vacina);
+            foreach ($fotos_salvas_paths as $p) @unlink(__DIR__ . '/' . $p);
+            error_log('Erro ao cadastrar pet: ' . $e->getMessage());
+            $_SESSION['mensagem_status'] = 'Não foi possível cadastrar o pet. Tente novamente.';
             $_SESSION['tipo_mensagem'] = 'danger';
             header("Location: cadastrar-pet.php");
             exit;
@@ -1532,11 +1506,21 @@ document.addEventListener('DOMContentLoaded', function() {
     function addAlergiaInput(value = '') {
         const inputGroup = document.createElement('div');
         inputGroup.className = 'alergia-input-group';
-        const inputId = `alergia_${Date.now()}`;
-        inputGroup.innerHTML = `
-            <input type="text" name="alergias[]" value="${value}" placeholder="Nome da alergia" class="input-style alergia-input" id="${inputId}">
-            <button type="button" class="btn-remove-alergia"><i class="fas fa-times"></i></button>
-        `;
+        const inputId = `alergia_${Date.now()}_${alergiasContainer.children.length}`;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.name = 'alergias[]';
+        input.value = value;
+        input.placeholder = 'Nome da alergia';
+        input.className = 'input-style alergia-input';
+        input.id = inputId;
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'btn-remove-alergia';
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-times';
+        removeButton.appendChild(icon);
+        inputGroup.append(input, removeButton);
         alergiasContainer.appendChild(inputGroup);
         updateRemoveButtons();
     }

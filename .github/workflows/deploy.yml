@@ -5,6 +5,13 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
+concurrency:
+  group: production-ftp-deploy
+  cancel-in-progress: true
+
 jobs:
   web-deploy:
     name: Sincronizar arquivos
@@ -25,6 +32,22 @@ jobs:
           rm -rf vendor
           composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
+      - name: Validar configuração do Composer
+        working-directory: AdotePatas
+        run: composer validate --strict --no-check-publish
+
+      - name: Auditar dependências
+        working-directory: AdotePatas
+        run: composer audit --locked --no-interaction
+
+      - name: Verificar sintaxe PHP
+        working-directory: AdotePatas
+        run: find . -path ./vendor -prune -o -path ./fpdf -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Executar testes
+        working-directory: AdotePatas
+        run: php tests/security_test.php
+
       - name: Sincronizar via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -33,3 +56,14 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: AdotePatas/
           server-dir: htdocs/
+          exclude: |
+            **/.env
+            **/.env.*
+            **/composer.json
+            **/composer.lock
+            **/scripts/**
+            **/tests/**
+            **/database/**
+            **/uploads/**
+            **/*.sql
+            **/*.log

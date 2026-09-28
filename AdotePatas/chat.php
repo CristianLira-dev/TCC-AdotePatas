@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 include_once 'conexao.php';
 include_once 'session.php'; 
 
@@ -88,6 +89,8 @@ if ($conversa_id_ativa) {
             SELECT 
                 c.id_conversa, 
                 c.id_solicitacao_fk,
+                c.id_adotante_fk,
+                s.status_solicitacao,
                 p.nome AS pet_nome,
                 (c.id_protetor_fk = :user_id AND c.tipo_protetor = :user_tipo) AS sou_protetor,
                 CASE 
@@ -247,6 +250,19 @@ if ($conversa_id_ativa) {
                    <i class="fa-solid fa-file-pdf me-1"></i> Ver Formulário
                 </a>
             <?php endif; ?>
+            <div class="ms-auto d-flex align-items-center gap-2 adoption-status-controls">
+                <span class="badge text-bg-light" id="adoption-status-label"><?php echo appEscape(str_replace('_', ' ', $conversa_ativa['status_solicitacao'])); ?></span>
+                <?php if ($eu_sou_protetor): ?>
+                    <select id="adoption-status" class="form-select form-select-sm" aria-label="Status da adoção">
+                        <?php foreach (['em_conversa' => 'Em conversa', 'entrevista' => 'Entrevista', 'aprovado' => 'Aprovado', 'recusado' => 'Recusado', 'concluido' => 'Concluído'] as $value => $label): ?>
+                            <option value="<?php echo $value; ?>" <?php echo $conversa_ativa['status_solicitacao'] === $value ? 'selected' : ''; ?>><?php echo $label; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button type="button" class="btn btn-danger btn-sm" id="save-adoption-status">Atualizar</button>
+                <?php elseif ($user_tipo_logado === 'usuario' && !in_array($conversa_ativa['status_solicitacao'], ['recusado', 'concluido', 'cancelado'], true)): ?>
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="cancel-adoption">Cancelar solicitação</button>
+                <?php endif; ?>
+            </div>
         </div>
 
         <div class="chat-messages" id="chat-messages-container">
@@ -260,13 +276,14 @@ if ($conversa_id_ativa) {
                             $classe_msg = 'sent';
                         }
                         $data_msg = date('H:i, d/m/Y', strtotime($msg['data_envio']));
-                          $conteudoHtml = '';
+                        $conteudoHtml = '';
+                        $attachmentUrl = $base_path . 'chat-anexo/?id=' . (int) $msg['id_mensagem'];
                         if ($msg['tipo_conteudo'] == 'imagem') {
                             
-                        $conteudoHtml = '<div class="msg-image-container"><img src="' . $base_path . htmlspecialchars($msg['conteudo']) . '" class="img-fluid rounded" style="max-width: 250px; cursor: pointer;" onclick="window.open(this.src)"></div>';
+                        $conteudoHtml = '<div class="msg-image-container"><img src="' . htmlspecialchars($attachmentUrl, ENT_QUOTES, 'UTF-8') . '" class="img-fluid rounded" style="max-width: 250px; cursor: pointer;" onclick="window.open(this.src)"></div>';
                         } elseif ($msg['tipo_conteudo'] == 'arquivo') {
                             $nomeArquivo = $msg['arquivo_nome'] ?: 'Documento';
-                            $conteudoHtml = '<div class="msg-file-container p-2 bg-light rounded border d-flex align-items-center gap-2"><i class="fa-solid fa-file-lines text-danger text-xl"></i><a href="' . $base_path . htmlspecialchars($msg['conteudo']) . '" target="_blank" class="text-decoration-none text-dark text-break">' . htmlspecialchars($nomeArquivo) . '</a></div>';
+                            $conteudoHtml = '<div class="msg-file-container p-2 bg-light rounded border d-flex align-items-center gap-2"><i class="fa-solid fa-file-lines text-danger text-xl"></i><a href="' . htmlspecialchars($attachmentUrl, ENT_QUOTES, 'UTF-8') . '" target="_blank" class="text-decoration-none text-dark text-break">' . htmlspecialchars($nomeArquivo) . '</a></div>';
                         } else {
                             $conteudoHtml = '<p class="mb-1">' . nl2br(htmlspecialchars($msg['conteudo'])) . '</p>';
                         }
@@ -469,34 +486,52 @@ if ($conversa_id_ativa) {
 
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message', side);
-            
-            let contentHtml = '';
 
             if (tipo === 'imagem') {
                 const imgSrc = conteudo.startsWith('blob:') ? conteudo : basePath + conteudo;
-                contentHtml = `<div class="msg-image-container">
-                                <img src="${imgSrc}" alt="Imagem enviada" class="img-fluid rounded" style="max-width: 250px; cursor: pointer;" onclick="window.open(this.src)">
-                               </div>`;
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'msg-image-container';
+                const image = document.createElement('img');
+                image.src = imgSrc;
+                image.alt = 'Imagem enviada';
+                image.className = 'img-fluid rounded';
+                image.style.maxWidth = '250px';
+                image.style.cursor = 'pointer';
+                image.addEventListener('click', () => window.open(image.src, '_blank', 'noopener'));
+                imageContainer.appendChild(image);
+                messageDiv.appendChild(imageContainer);
             } else if (tipo === 'arquivo') {
                 const fileLink = basePath + conteudo;
-                const nomeDisplay = arquivoNome || 'Documento';
-                contentHtml = `<div class="msg-file-container p-2 bg-light rounded border d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-file-lines text-danger text-xl"></i>
-                                <a href="${fileLink}" target="_blank" class="text-decoration-none text-dark text-break">${nomeDisplay}</a>
-                               </div>`;
+                const fileContainer = document.createElement('div');
+                fileContainer.className = 'msg-file-container p-2 bg-light rounded border d-flex align-items-center gap-2';
+                const icon = document.createElement('i');
+                icon.className = 'fa-solid fa-file-lines text-danger text-xl';
+                const link = document.createElement('a');
+                link.href = fileLink;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.className = 'text-decoration-none text-dark text-break';
+                link.textContent = arquivoNome || 'Documento';
+                fileContainer.append(icon, link);
+                messageDiv.appendChild(fileContainer);
             } else {
-                contentHtml = `<p class="mb-1">${conteudo}</p>`;
+                const paragraph = document.createElement('p');
+                paragraph.className = 'mb-1';
+                paragraph.textContent = conteudo;
+                messageDiv.appendChild(paragraph);
             }
-            
-            messageDiv.innerHTML = `
-                ${contentHtml}
-                <div class="date message-timestamp text-end" style="font-size: 0.75rem; opacity: 0.8;">${timestamp}</div>
-            `;
+
+            const timestampElement = document.createElement('div');
+            timestampElement.className = 'date message-timestamp text-end';
+            timestampElement.style.fontSize = '0.75rem';
+            timestampElement.style.opacity = '0.8';
+            timestampElement.textContent = timestamp;
+            messageDiv.appendChild(timestampElement);
 
             chatMessages.appendChild(messageDiv);
             scrollToBottom();
-            
-            return messageDiv.querySelector('.date'); 
+
+            return timestampElement;
         }
 
         async function sendMessage() {
@@ -603,7 +638,7 @@ if ($conversa_id_ativa) {
                     result.messages.forEach(msg => {
                         if (!msg.sou_eu) {
                             addMessageToUI(
-                                msg.conteudo, 
+                                msg.attachment_url || msg.conteudo,
                                 'received', 
                                 msg.data_formatada, 
                                 msg.tipo_conteudo, 
@@ -619,6 +654,30 @@ if ($conversa_id_ativa) {
             }
         }
         connectWebSocket();
+
+        const updateAdoptionStatus = async (status) => {
+            const body = new URLSearchParams({
+                solicitacao_id: <?php echo (int) ($conversa_ativa['id_solicitacao_fk'] ?? 0); ?>,
+                status
+            });
+            const response = await fetch('atualizar-status-adocao/', { method: 'POST', body });
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.message || 'Falha ao atualizar status.');
+            window.location.reload();
+        };
+
+        document.getElementById('save-adoption-status')?.addEventListener('click', async function () {
+            this.disabled = true;
+            try { await updateAdoptionStatus(document.getElementById('adoption-status').value); }
+            catch (error) { this.disabled = false; alert(error.message); }
+        });
+
+        document.getElementById('cancel-adoption')?.addEventListener('click', async function () {
+            if (!window.confirm('Deseja cancelar esta solicitação de adoção?')) return;
+            this.disabled = true;
+            try { await updateAdoptionStatus('cancelado'); }
+            catch (error) { this.disabled = false; alert(error.message); }
+        });
 
         setInterval(pollMessages, 3000);
     });

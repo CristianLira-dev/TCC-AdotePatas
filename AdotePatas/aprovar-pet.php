@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 
 include_once __DIR__ . '/conexao.php';
 require_once __DIR__ . '/email-service.php';
@@ -34,6 +35,8 @@ try {
         SELECT p.id_pet,
                p.nome,
                p.status_disponibilidade,
+               p.id_usuario_fk,
+               p.id_ong_fk,
                COALESCE(u.nome, o.nome) AS responsavel_nome,
                COALESCE(u.email, o.email) AS responsavel_email
         FROM pet p
@@ -67,6 +70,18 @@ try {
     if (!$stmt_atualiza->execute()) {
         throw new RuntimeException('Não foi possível atualizar o status do pet.');
     }
+
+    appAudit($conn, 'approve', 'pet', $pet_id);
+    $responsavelTipo = !empty($pet['id_ong_fk']) ? 'ong' : 'usuario';
+    $responsavelId = (int) ($pet['id_ong_fk'] ?: $pet['id_usuario_fk']);
+    appNotify(
+        $conn,
+        $responsavelId,
+        $responsavelTipo,
+        'Pet aprovado',
+        $pet['nome'] . ' foi aprovado e já aparece no catálogo.',
+        'perfil/?page=meus-pets'
+    );
 
     if (!empty($pet['responsavel_email'])) {
         adotePatasSendEmail(

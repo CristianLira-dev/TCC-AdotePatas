@@ -6,9 +6,8 @@
  */
 
 // Inicia a sessão se ainda não estiver iniciada
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 
 /**
  * Redireciona o usuário para a página de login se não houver um ID

@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 
 require_once __DIR__ . '/conexao.php';
 require_once __DIR__ . '/chat-read-schema.php';
@@ -148,6 +149,20 @@ try {
             if ((int) $file['size'] > 10 * 1024 * 1024) {
                 responderMensagem(false, 'O documento deve ter no máximo 10 MB.', [], 413);
             }
+
+            $documentMimes = [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'text/plain',
+                'application/rtf',
+                'text/rtf',
+            ];
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mime = (string) $finfo->file($file['tmp_name']);
+            if (!in_array($mime, $documentMimes, true)) {
+                responderMensagem(false, 'O conteúdo do documento não corresponde ao formato informado.', [], 400);
+            }
         } else {
             responderMensagem(false, 'Formato de arquivo não suportado.', [], 400);
         }
@@ -215,6 +230,9 @@ try {
         'lida' => $readReceiptsEnabled ? (bool) ($savedMessage['lida'] ?? false) : false,
         'data_leitura' => $readReceiptsEnabled ? ($savedMessage['data_leitura'] ?? null) : null,
         'read_receipts_enabled' => $readReceiptsEnabled,
+        'attachment_url' => $tipoConteudo !== 'texto'
+            ? 'chat-anexo/?id=' . $messageId
+            : null,
     ]);
 } catch (Throwable $e) {
     if ($arquivoSalvo && is_file($arquivoSalvo)) {

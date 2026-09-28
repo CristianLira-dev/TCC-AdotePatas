@@ -1,5 +1,7 @@
 <?php
-session_start();
+define('ADOTE_PATAS_DISABLE_HTML_INJECTION', true);
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 include_once 'conexao.php';
 
 // 1. Verifica se a biblioteca FPDF existe
@@ -189,6 +191,8 @@ try {
     $pdf->Output('I', 'Ficha_Adocao_' . $dados['pet_nome'] . '.pdf');
 
 } catch (PDOException $e) {
-    die("Erro ao gerar PDF: " . $e->getMessage());
+    error_log('Erro ao gerar PDF da adoção: ' . $e->getMessage());
+    http_response_code(500);
+    exit('Não foi possível gerar o PDF. Tente novamente.');
 }
 ?>

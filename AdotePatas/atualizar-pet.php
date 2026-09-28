@@ -197,24 +197,16 @@ $caminhos_para_excluir_fisico = [];
 // Upload de nova carteirinha (se houver)
 $novo_caminho_vacina = null;
 if (isset($_FILES['carteira_vacinacao']) && $_FILES['carteira_vacinacao']['error'] == UPLOAD_ERR_OK) {
-    $vacina_file = $_FILES['carteira_vacinacao'];
-    $ext = strtolower(pathinfo($vacina_file['name'], PATHINFO_EXTENSION));
-    $allowed_vacina = ['jpg', 'jpeg', 'png', 'pdf', 'webp'];
-    
-    if (!in_array($ext, $allowed_vacina)) {
-        $erros[] = "Formato da carteirinha inválido. Use JPG, PNG, WEBP ou PDF.";
-    } else {
-        $upload_dir_vacina = 'uploads/documentos/';
-        if (!is_dir($upload_dir_vacina)) mkdir($upload_dir_vacina, 0755, true);
-        
-        $nome_vacina = uniqid('vacina_update_') . '.' . $ext;
-        $caminho_vacina = $upload_dir_vacina . $nome_vacina;
-        
-        if (!move_uploaded_file($vacina_file['tmp_name'], $caminho_vacina)) {
-            $erros[] = "Erro ao salvar carteirinha de vacinação.";
-        } else {
-            $novo_caminho_vacina = $caminho_vacina;
-        }
+    try {
+        $novo_caminho_vacina = appStoreUploadedFile(
+            $_FILES['carteira_vacinacao'],
+            'uploads/documentos',
+            'vacina_update_',
+            appVaccinationDocumentMimeMap(),
+            8 * 1024 * 1024
+        );
+    } catch (RuntimeException $error) {
+        $erros[] = $error->getMessage();
     }
 }
 
@@ -288,37 +280,25 @@ try {
     // 3. PROCESSAR UPLOAD DE NOVAS FOTOS
     // ---------------------------------------------------------
     if ($qtd_novas > 0) {
-        $upload_dir = 'uploads/pets/';
-        if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
-        
-        // Aceita webp (do JS) e formatos padrão caso o JS falhe
-        $extensoes_permitidas = ['webp', 'jpg', 'jpeg', 'png'];
-
         // Loop manual para usar o índice correto
         foreach ($fotos_novas['name'] as $i => $name) {
             if (empty($name)) continue; // Pula slots vazios
 
             if ($fotos_novas['error'][$i] == UPLOAD_ERR_OK) {
-                $file_tmp = $fotos_novas['tmp_name'][$i];
-                $file_size = $fotos_novas['size'][$i];
-                
-                $file_ext_check = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-
-                if (!in_array($file_ext_check, $extensoes_permitidas)) {
-                    throw new Exception("Foto '$name': Formato inválido.");
-                }
-                if ($file_size > 5 * 1024 * 1024) {
-                    throw new Exception("Foto '$name': Imagem muito grande (Máx: 5MB).");
-                }
-
-                $novo_nome_arquivo = uniqid('', true) . '.' . $file_ext_check;
-                $caminho_completo = $upload_dir . $novo_nome_arquivo;
-
-                if (move_uploaded_file($file_tmp, $caminho_completo)) {
-                    $novos_caminhos_salvos[] = $caminho_completo;
-                } else {
-                    throw new Exception("Falha ao salvar a imagem '$name'.");
-                }
+                $photo = [
+                    'name' => $name,
+                    'type' => $fotos_novas['type'][$i] ?? '',
+                    'tmp_name' => $fotos_novas['tmp_name'][$i],
+                    'error' => $fotos_novas['error'][$i],
+                    'size' => $fotos_novas['size'][$i],
+                ];
+                $novos_caminhos_salvos[] = appStoreUploadedFile(
+                    $photo,
+                    'uploads/pets',
+                    'pet_',
+                    appImageMimeMap(),
+                    5 * 1024 * 1024
+                );
             }
         }
     }
@@ -406,6 +386,7 @@ try {
     // 7. CONFIRMAR TRANSAÇÃO (COMMIT)
     // ---------------------------------------------------------
     $conn->commit();
+    appAudit($conn, 'update', 'pet', (int) $id_pet, ['status' => $status_disponibilidade]);
 
     // ---------------------------------------------------------
     // 8. LIMPEZA DE ARQUIVOS ANTIGOS
@@ -432,7 +413,9 @@ try {
 
 } catch (Exception $e) {
     // SE DEU ERRO, DESFAZ TUDO
-    $conn->rollBack();
+    if ($conn->inTransaction()) {
+        $conn->rollBack();
+    }
     
     // Apaga os arquivos que acabamos de subir (já que o banco falhou)
     foreach ($novos_caminhos_salvos as $caminho) {
@@ -445,12 +428,9 @@ try {
         @unlink($novo_caminho_vacina);
     }
 
-    // --- DEBUG DE ERRO (MODO PÂNICO) ---
-    echo "<div style='background:red; color:white; padding:20px; font-size:20px;'>";
-    echo "<h1>ERRO ENCONTRADO:</h1>";
-    echo $e->getMessage();
-    echo "<br><br><strong>Linha do erro:</strong> " . $e->getLine();
-    echo "<br><strong>Arquivo:</strong> " . $e->getFile();
-    echo "</div>";
-    exit; // Mata o script aqui e mostra o erro na tela branca
+    error_log('Erro ao atualizar pet: ' . $e->getMessage());
+    $_SESSION['toast_message'] = 'Não foi possível atualizar o pet. Tente novamente.';
+    $_SESSION['toast_type'] = 'danger';
+    header('Location: editar-pet?id=' . urlencode((string) $id_pet));
+    exit;
 }

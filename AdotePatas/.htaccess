@@ -1,14 +1,28 @@
-# As URLs agora usam diretórios com index.php; não há regras de reescrita.
-
-# Página personalizada para rotas/arquivos inexistentes.
+Options -Indexes
 ErrorDocument 404 /erro-404/
 
-# Bloqueia arquivos ocultos de acesso direto.
 <FilesMatch "^\.">
     Require all denied
 </FilesMatch>
 
-# Impede acesso direto ao arquivo de conexão.
-<Files "conexao.php">
+<FilesMatch "^(\.env|composer\.(json|lock)|.*\.(sql|log|ini))$">
     Require all denied
-</Files>
+</FilesMatch>
+
+<FilesMatch "^(conexao|session|email-service|route-bootstrap|chat-read-schema|registration-email-hook)\.php$">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+</IfModule>
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^uploads/chat/ - [F,L,NC]
+    RewriteRule ^uploads/(?:pets|documentos)/.*\.(?:php|phtml|phar|cgi|pl|py|sh)$ - [F,L,NC]
+    RewriteRule ^(?:app|database|scripts|tests)/ - [F,L,NC]
+</IfModule>

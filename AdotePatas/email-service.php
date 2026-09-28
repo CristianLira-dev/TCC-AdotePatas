@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/app/security.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 
@@ -64,7 +65,17 @@ function adotePatasSendEmail(
     $buttonHtml = '';
     if ($buttonLabel !== null && $buttonLabel !== '' && $buttonUrl !== null && $buttonUrl !== '') {
         $safeButtonLabel = htmlspecialchars($buttonLabel, ENT_QUOTES, 'UTF-8');
-        $safeButtonUrl = htmlspecialchars($buttonUrl, ENT_QUOTES, 'UTF-8');
+        $parsedButtonUrl = parse_url($buttonUrl);
+        $safeButtonUrl = '';
+        if (is_array($parsedButtonUrl) && in_array(strtolower((string) ($parsedButtonUrl['scheme'] ?? '')), ['http', 'https'], true)) {
+            $safeButtonUrl = htmlspecialchars($buttonUrl, ENT_QUOTES, 'UTF-8');
+        }
+        if ($safeButtonUrl === '') {
+            $buttonLabel = null;
+        }
+    }
+
+    if ($buttonLabel !== null && $buttonLabel !== '' && isset($safeButtonUrl) && $safeButtonUrl !== '') {
         $buttonHtml = <<<HTML
             <p style="margin:28px 0 8px;text-align:center;">
                 <a href="{$safeButtonUrl}" style="display:inline-block;background:#b8655b;color:#ffffff;text-decoration:none;font-weight:700;padding:13px 24px;border-radius:999px;">{$safeButtonLabel}</a>
@@ -116,6 +127,7 @@ function adotePatasSendEmail(
         $mail->Username = $smtpUser;
         $mail->Password = $smtpPassword;
         $mail->Port = $smtpPort;
+        $mail->Timeout = 15;
 
         if (in_array($smtpSecure, ['ssl', 'smtps'], true)) {
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;

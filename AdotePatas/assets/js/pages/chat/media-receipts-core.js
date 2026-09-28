@@ -155,7 +155,7 @@
         }
 
         receipt(el, Boolean(result.lida));
-        const finalUrl = asset(result.conteudo);
+        const finalUrl = asset(result.attachment_url || result.conteudo);
         el.querySelector('img,video')?.setAttribute('src', finalUrl);
 
         const card = el.querySelector('.chat-doc-card');
@@ -186,7 +186,7 @@
 
     const initialSync = async () => {
       try {
-        const result = await parse(await fetch(`${pollUrl}?conversa_id=${id}&ultimo_id=0`, { credentials: 'same-origin', cache: 'no-store' }));
+        const result = await parse(await fetch(`${pollUrl}?conversa_id=${id}&ultimo_id=0`, { method: 'POST', credentials: 'same-origin', cache: 'no-store' }));
         setReadIds(result.read_ids || []);
         const own = (result.messages || []).filter((msg) => msg.sou_eu);
         const rendered = [...box.querySelectorAll('.message.sent')];
@@ -202,7 +202,7 @@
 
     const refreshReceipts = async () => {
       try {
-        const result = await parse(await fetch(`${pollUrl}?conversa_id=${id}&ultimo_id=2147483647`, { credentials: 'same-origin', cache: 'no-store' }));
+        const result = await parse(await fetch(`${pollUrl}?conversa_id=${id}&ultimo_id=2147483647`, { method: 'POST', credentials: 'same-origin', cache: 'no-store' }));
         setReadIds(result.read_ids || []);
       } catch {}
     };
