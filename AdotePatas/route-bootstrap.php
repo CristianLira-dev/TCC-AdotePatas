@@ -25,16 +25,19 @@ if (!defined('ADOTE_PATAS_ROUTING_LOADED')) {
             'ajuda.php' => 'ajuda/',
             'autenticacao.php' => 'login/',
             'cadastrar-pet.php' => 'cadastrar-pet/',
+            'atualizar-status-adocao.php' => 'atualizar-status-adocao/',
             'chat.php' => 'chat/',
             'chat-anexo.php' => 'chat-anexo/',
             'como-adotar.php' => 'como-adotar/',
             'editar-pet.php' => 'editar-pet/',
             'formulario-adocao.php' => 'formulario-adocao/',
+            'notificacoes.php' => 'notificacoes/',
             'ongs-parceiras.php' => 'ongs-parceiras/',
             'perfil.php' => 'perfil/',
             'pet-detalhe.php' => 'pet-detalhe/',
             'pets-adocao.php' => 'pets/',
             'politicas-privacidade.php' => 'politicas-privacidade/',
+            'privacidade-conta.php' => 'privacidade-conta/',
             'politica-privacidade.php' => 'politicas-privacidade/',
             'politica-de-privacidade.php' => 'politicas-privacidade/',
             'recuperar-senha.php' => 'recuperar-senha/',
@@ -94,7 +97,10 @@ if (!defined('ADOTE_PATAS_ROUTING_LOADED')) {
             'login' => 'login/', 'cadastro' => 'cadastro/', 'cadastro-ong' => 'cadastro-ong/',
             'pets' => 'pets/', 'perfil' => 'perfil/', 'sobre-nos' => 'sobre-nos/',
             'ajuda' => 'ajuda/', 'chat' => 'chat/', 'chat-anexo' => 'chat-anexo/', 'cadastrar-pet' => 'cadastrar-pet/',
+            'atualizar-status-adocao' => 'atualizar-status-adocao/',
+            'notificacoes' => 'notificacoes/',
             'politicas-privacidade' => 'politicas-privacidade/',
+            'privacidade-conta' => 'privacidade-conta/',
             'politica-privacidade' => 'politicas-privacidade/',
             'politica-de-privacidade' => 'politicas-privacidade/',
             'termos-de-uso' => 'termos-de-uso/',
@@ -121,7 +127,8 @@ if (!defined('ADOTE_PATAS_ROUTING_LOADED')) {
         });
     }
 
-    ob_start(function (string $buffer): string {
+    if (!defined('ADOTE_PATAS_DISABLE_HTML_INJECTION')) {
+        ob_start(function (string $buffer): string {
         if (stripos($buffer, '<html') === false && stripos($buffer, '<!DOCTYPE') === false) {
             return $buffer;
         }
@@ -198,5 +205,6 @@ if (!defined('ADOTE_PATAS_ROUTING_LOADED')) {
         }
 
         return $buffer;
-    });
+        });
+    }
 }

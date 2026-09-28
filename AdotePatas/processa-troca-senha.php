@@ -19,6 +19,7 @@ $response = ['success' => false, 'message' => 'Ocorreu um erro desconhecido.'];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $token = $_POST['token'] ?? null;
+    $tokenHash = $token ? hash('sha256', (string) $token) : null;
     $nova_senha = $_POST['nova_senha'] ?? null;
     $confirma_senha = $_POST['confirma_senha'] ?? null;
 
@@ -49,10 +50,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // 3. Validação do Token e Atualização (Segurança)
     try {
         $now = date("Y-m-d H:i:s");
-        $sql = "SELECT email FROM recuperar_senha_tolken WHERE token = :token AND expires_at > :now LIMIT 1";
+        $sql = "SELECT email FROM recuperar_senha_tolken WHERE (token = :token_hash OR token = :legacy_token) AND expires_at > :now LIMIT 1";
         $stmt = $conn->prepare($sql);
-        // CORREÇÃO AQUI:
-        $stmt->execute([':token' => $token, ':now' => $now]);
+        $stmt->execute([':token_hash' => $tokenHash, ':legacy_token' => $token, ':now' => $now]);
         $reset_request = $stmt->fetch();
         if (!$reset_request) {
             $response['message'] = 'Token inválido ou expirado. Por favor, solicite um novo link.';
@@ -86,11 +86,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         // 5. Invalida o token (excluindo-o)
-        $sql_delete = "DELETE FROM recuperar_senha_tolken WHERE token = :token";
+        $sql_delete = "DELETE FROM recuperar_senha_tolken WHERE token = :token_hash OR token = :legacy_token";
         $stmt_delete = $conn->prepare($sql_delete);
-        $stmt_delete->execute([':token' => $token]);
+        $stmt_delete->execute([':token_hash' => $tokenHash, ':legacy_token' => $token]);
 
         $conn->commit();
+        appAudit($conn, 'password_reset', 'account', null, ['email_hash' => hash('sha256', $email_para_atualizar)]);
 
         $response['success'] = true;
         $response['message'] = 'Senha atualizada com sucesso!';
@@ -100,7 +101,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $conn->rollBack();
         }
         error_log("Erro ao processar troca de senha: " . $e->getMessage());
-        $response['message'] = 'Erro no banco de dados. Tente novamente.' . $e->getMessage();
+        $response['message'] = 'Erro no banco de dados. Tente novamente.';
     }
 } else {
     $response['message'] = 'Método de requisição inválido.';

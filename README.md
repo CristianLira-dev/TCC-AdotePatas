@@ -39,7 +39,7 @@ Diferente de catálogos simples, este sistema gerencia **todo o fluxo de adoçã
 O projeto foi construído com foco em **Performance** e **Regras de Negócio**:
 
 - **Front-End:** HTML5, CSS3, JavaScript (ES6+).
-- **Back-End:** PHP (Estruturado/MVC).
+- **Back-End:** PHP 8.3 com núcleo modular de segurança, serviços e páginas estruturadas.
 - **Banco de Dados:** MySQL (Relacional).
 - **APIs Externas:** Google Maps Platform (Maps JavaScript API).
 
@@ -62,3 +62,35 @@ O projeto foi construído com foco em **Performance** e **Regras de Negócio**:
 O maior desafio técnico deste projeto foi a implementação do **Sistema de Moderação e Chat**.
 - Para o chat, precisei estruturar o banco de dados para armazenar as mensagens de forma relacional entre dois usuários.
 - A integração com o **Google Maps** exigiu manipulação de coordenadas e renderização de pinos dinâmicos baseados no banco de dados MySQL.
+
+---
+
+## 🔐 Segurança e privacidade
+
+- Sessões com cookies `HttpOnly`, `Secure` em HTTPS e `SameSite=Lax`.
+- CSRF obrigatório em operações de escrita, inclusive requisições `fetch`.
+- Senhas armazenadas com `password_hash` e tokens de recuperação armazenados como hash.
+- Uploads verificados por MIME real, tamanho e assinatura de imagem.
+- Exclusões executadas por `POST`, com autorização e trilha de auditoria.
+- Exportação de dados e solicitação de exclusão da conta.
+- Endereço do responsável exibido somente de forma aproximada.
+
+## 🚀 Configuração e atualização
+
+1. Copie `AdotePatas/.env.example` para `AdotePatas/.env` e preencha banco, SMTP, URL e destinatário de contato.
+2. Execute `composer install` dentro de `AdotePatas/`.
+3. Faça backup do banco e aplique, em ordem, os arquivos de `AdotePatas/database/migrations/`.
+4. Execute `php AdotePatas/scripts/migrate-admin-passwords.php` uma única vez para migrar instalações antigas.
+5. Revogue qualquer senha SMTP que tenha aparecido em commits anteriores e gere uma nova credencial.
+
+O deploy executa validação do Composer, auditoria de dependências, lint PHP e testes antes da sincronização por FTP.
+
+## 🧪 Testes
+
+```bash
+php AdotePatas/tests/security_test.php
+```
+
+O ambiente de produção deve manter `.env`, uploads, logs, testes e migrações fora da sincronização pública.
+
+Consulte [IMPLEMENTACAO-MELHORIAS.md](IMPLEMENTACAO-MELHORIAS.md) para o inventário da entrega, ordem de implantação e critérios de aceite.

@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 include_once 'conexao.php';
 
 header('Content-Type: application/json');
@@ -90,7 +91,8 @@ function buscarViaCEP($cep) {
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Desativar em localhost, mas considere ativar em produção
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
     curl_setopt($ch, CURLOPT_TIMEOUT, 5); // Timeout de 5 segundos
     
     $result_json = curl_exec($ch);
@@ -266,6 +268,7 @@ try {
 
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);
+    appAudit($conn, 'update', 'profile', (int) $user_id, ['account_type' => $user_tipo]);
 
     if ($stmt->rowCount() > 0) {
          $_SESSION['nome'] = $nome;

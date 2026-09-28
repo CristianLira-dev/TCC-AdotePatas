@@ -53,6 +53,7 @@ try {
         $sql_delete = "DELETE FROM favorito WHERE id_favorito = :id_favorito";
         $stmt_delete = $conn->prepare($sql_delete);
         $stmt_delete->execute([':id_favorito' => $favorito_existente['id_favorito']]);
+        appAudit($conn, 'unfavorite', 'pet', $id_pet);
         
         $response['success'] = true;
         $response['action'] = 'unfavorited';
@@ -63,6 +64,7 @@ try {
         $sql_insert = "INSERT INTO favorito (id_usuario, id_pet) VALUES (:id_usuario, :id_pet)";
         $stmt_insert = $conn->prepare($sql_insert);
         $stmt_insert->execute([':id_usuario' => $id_usuario, ':id_pet' => $id_pet]);
+        appAudit($conn, 'favorite', 'pet', $id_pet);
 
         $response['success'] = true;
         $response['action'] = 'favorited';
@@ -73,7 +75,7 @@ try {
 
 } catch (PDOException $e) {
     http_response_code(500); // Erro interno do servidor
-    $response['message'] = 'Erro no banco de dados: ' . $e->getMessage();
+    error_log('Erro ao alterar favorito: ' . $e->getMessage());
+    $response['message'] = 'Não foi possível atualizar o favorito.';
     echo json_encode($response, JSON_UNESCAPED_UNICODE);
 }
-

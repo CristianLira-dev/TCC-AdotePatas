@@ -1,6 +1,7 @@
 <?php
 // Inicia a sessão para poder redirecionar com mensagens se necessário
-session_start(); 
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 
 // Inclui a conexão
 include_once 'conexao.php';
@@ -49,14 +50,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 header('Location: login.php?cadastro=sucesso');
                 exit();
             } else {
-                $_SESSION['mensagem_status'] = "Erro ao cadastrar: " . implode(" ", $stmt->errorInfo());
+                $_SESSION['mensagem_status'] = "Não foi possível concluir o cadastro.";
                 $_SESSION['tipo_mensagem'] = 'danger';
             }
         } catch (PDOException $e) {
             if ($e->getCode() == '23000') { // Erro de chave duplicada (email/cpf já existe)
                 $_SESSION['mensagem_status'] = "Este e-mail ou CPF já está cadastrado.";
             } else {
-                $_SESSION['mensagem_status'] = "Falha no banco de dados: " . $e->getMessage();
+                error_log('Erro no cadastro de usuário: ' . $e->getMessage());
+                $_SESSION['mensagem_status'] = "Não foi possível concluir o cadastro.";
             }
             $_SESSION['tipo_mensagem'] = 'danger';
         }

@@ -53,11 +53,7 @@ if (isset($_SESSION['user_id'], $_SESSION['user_tipo']) && in_array($_SESSION['u
     }
 }
 
-if (!isset($_SESSION['profile_photo_csrf'])) {
-    $_SESSION['profile_photo_csrf'] = bin2hex(random_bytes(32));
-}
-
-$csrfToken = $_SESSION['profile_photo_csrf'];
+$csrfToken = appCsrfToken();
 $fotoUrl = $fotoPerfil ? $baseUrl . ltrim($fotoPerfil, '/') : null;
 $endpointUrl = $baseUrl . 'atualizar-foto-perfil/';
 

@@ -451,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
             url.searchParams.set('ultimo_id', String(lastMessageId));
 
             const response = await fetch(url.toString(), {
-                method: 'GET',
+                method: 'POST',
                 credentials: 'same-origin',
                 cache: 'no-store',
             });

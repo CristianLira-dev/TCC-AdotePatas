@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 include_once 'conexao.php';
 include_once 'session.php';
 
@@ -244,7 +245,7 @@ try {
                 
                 <div class="pet-hero-card fade-in-up">
                     <div class="pet-image-wrapper">
-                        <img src="<?php echo $foto_principal; ?>" alt="Foto de <?php echo htmlspecialchars($pet['nome']); ?>" class="pet-hero-img" onerror="this.src='<?php echo $base_path; ?>images/perfil/teste.jpg';">
+                        <img src="<?php echo htmlspecialchars($foto_principal, ENT_QUOTES, 'UTF-8'); ?>" alt="Foto de <?php echo htmlspecialchars($pet['nome']); ?>" class="pet-hero-img" onerror="this.src='<?php echo $base_path; ?>images/perfil/teste.jpg';">
                     </div>
                     <div class="pet-hero-content">
                         <span class="badge-adote">Processo de Adoção</span>

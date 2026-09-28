@@ -6,10 +6,15 @@ include_once 'session.php';
 // 2. Garantir que o usuário está logado
 requerer_login();
 
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit('Método não permitido.');
+}
+
 // 3. Pegar IDs da sessão e da URL
 $user_id = $_SESSION['user_id'];
 $user_tipo = $_SESSION['user_tipo'];
-$id_pet_para_excluir = $_GET['id'] ?? null;
+$id_pet_para_excluir = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
 
 if (empty($id_pet_para_excluir)) {
     $_SESSION['mensagem_status'] = "ID do pet não fornecido.";
@@ -50,6 +55,7 @@ try {
     $sql_delete = "DELETE FROM pet WHERE id_pet = :id_pet";
     $stmt_delete = $conn->prepare($sql_delete);
     $stmt_delete->execute([':id_pet' => $id_pet_para_excluir]);
+    appAudit($conn, 'delete', 'pet', (int) $id_pet_para_excluir, ['owner_type' => $user_tipo]);
 
     // 8. APAGAR OS ARQUIVOS FÍSICOS DO SERVIDOR (SÓ APÓS O COMMIT)
     foreach ($fotos_para_apagar as $caminho) {
@@ -76,8 +82,9 @@ exit;
 
 } catch (Exception $e) {
     // 9. Se der qualquer erro, redireciona com a mensagem de falha
-    $_SESSION['mensagem_status'] = $e->getMessage();
-    $_SESSION['tipo_mensagem'] = 'danger';
+    error_log('Erro ao excluir pet: ' . $e->getMessage());
+    $_SESSION['toast_message'] = 'Não foi possível excluir o pet.';
+    $_SESSION['toast_type'] = 'danger';
     header('Location: perfil.php?page=meus-pets');
     exit;
 }

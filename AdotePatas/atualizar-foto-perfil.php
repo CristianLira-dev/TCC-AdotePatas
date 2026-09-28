@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 
 require_once __DIR__ . '/route-bootstrap.php';
 require_once __DIR__ . '/conexao.php';
@@ -22,10 +23,7 @@ if (!isset($_SESSION['user_id'], $_SESSION['user_tipo'])) {
     exit;
 }
 
-$csrf = $_POST['csrf_token'] ?? '';
-$sessionCsrf = $_SESSION['profile_photo_csrf'] ?? '';
-
-if ($sessionCsrf === '' || !hash_equals($sessionCsrf, $csrf)) {
+if (!appCsrfIsValid()) {
     finalizarFotoPerfil(false, 'Não foi possível validar a solicitação. Atualize a página e tente novamente.');
 }
 

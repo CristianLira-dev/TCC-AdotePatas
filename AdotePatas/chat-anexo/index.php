@@ -1,12 +1,11 @@
 <?php
 
+define('ADOTE_PATAS_DISABLE_HTML_INJECTION', true);
 define('ADOTE_PATAS_ROUTE_WRAPPER', true);
 require_once dirname(__DIR__) . '/route-bootstrap.php';
 require_once dirname(__DIR__) . '/conexao.php';
 
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
-}
+appStartSession();
 
 if (!isset($_SESSION['user_id'], $_SESSION['user_tipo'])) {
     http_response_code(401);

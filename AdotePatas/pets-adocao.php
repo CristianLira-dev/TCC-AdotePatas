@@ -1,5 +1,6 @@
 <?php
-session_start();
+require_once __DIR__ . '/app/security.php';
+appStartSession();
 include_once 'conexao.php'; // 1. Inclui a conexão
 if ($_SERVER['SERVER_NAME'] == 'localhost') {
     $base_path = '/TCC-AdotePatas/AdotePatas/';
@@ -72,7 +73,17 @@ try {
 // 5. Lógica para buscar os pets no banco de dados (original de pets-adocao.php)
 $pets = [];
 $erro = '';
+$paginaAtual = max(1, filter_input(INPUT_GET, 'pagina', FILTER_VALIDATE_INT) ?: 1);
+$itensPorPagina = 24;
+$totalPaginas = 1;
 try {
+    $totalPets = (int) $conn->query(
+        "SELECT COUNT(*) FROM pet WHERE status_disponibilidade = 'disponivel'"
+    )->fetchColumn();
+    $totalPaginas = max(1, (int) ceil($totalPets / $itensPorPagina));
+    $paginaAtual = min($paginaAtual, $totalPaginas);
+    $offset = ($paginaAtual - 1) * $itensPorPagina;
+
     // Buscamos apenas pets que estão 'disponiveis'
     $sql = "SELECT 
                 p.id_pet, p.nome, p.sexo,
@@ -88,9 +99,13 @@ try {
             LEFT JOIN 
                 pet_fotos AS pf ON pf.id_foto = pf_min.min_id_foto
             WHERE 
-                p.status_disponibilidade = 'disponivel'";
+                p.status_disponibilidade = 'disponivel'
+            ORDER BY p.id_pet DESC
+            LIMIT :limit OFFSET :offset";
 
     $stmt = $conn->prepare($sql);
+    $stmt->bindValue(':limit', $itensPorPagina, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
     $pets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -332,17 +347,19 @@ try {
                             </div>
                         <?php endforeach; ?>
 
-                         <div class="col pet-hidden d-none">
-                            <div class="pet-card">
-                                <div class="pet-card-img"><img src="images/index/caramelo.webp" alt="Foto do cachorro Zeus"></div>
-                                <div class="pet-card-body">
-                                    <h2 class="pet-name">Zeus 2</h2>
-                                    <i class="fa-solid fa-mars pet-gender-male" aria-label="Macho" title="Macho"></i>
-                                    <i class="fa-regular fa-heart pet-like" data-pet-id="zeus2" aria-label="Favoritar" role="button"></i>
-                                </div>
-                            </div>
-                         </div>
                         </div>
+
+                    <?php if ($totalPaginas > 1): ?>
+                        <nav class="mt-5" aria-label="Paginação dos pets">
+                            <ul class="pagination justify-content-center flex-wrap">
+                                <?php for ($numeroPagina = 1; $numeroPagina <= $totalPaginas; $numeroPagina++): ?>
+                                    <li class="page-item <?php echo $numeroPagina === $paginaAtual ? 'active' : ''; ?>">
+                                        <a class="page-link" href="pets/?pagina=<?php echo $numeroPagina; ?>" <?php echo $numeroPagina === $paginaAtual ? 'aria-current="page"' : ''; ?>><?php echo $numeroPagina; ?></a>
+                                    </li>
+                                <?php endfor; ?>
+                            </ul>
+                        </nav>
+                    <?php endif; ?>
 
                     <div class="text-center mt-5">
                         <div class="spinner-border d-none mb-3" role="status" id="loadingSpinner">
