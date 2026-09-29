@@ -25,4 +25,5 @@ ErrorDocument 404 /erro-404/
     RewriteRule ^uploads/chat/ - [F,L,NC]
     RewriteRule ^uploads/(?:pets|documentos)/.*\.(?:php|phtml|phar|cgi|pl|py|sh)$ - [F,L,NC]
     RewriteRule ^(?:app|database|scripts|tests)/ - [F,L,NC]
+    RewriteRule ^fpdf/(?:doc|makefont|tutorial)/ - [F,L,NC]
 </IfModule>

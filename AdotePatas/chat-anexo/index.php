@@ -91,19 +91,10 @@ function attachmentMime(string $filePath): string
         'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ];
 
-    $mime = $mimeMap[$extension] ?? 'application/octet-stream';
-    if (function_exists('finfo_open')) {
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        if ($finfo) {
-            $detected = finfo_file($finfo, $filePath);
-            finfo_close($finfo);
-            if (is_string($detected) && $detected !== '' && $detected !== 'application/octet-stream') {
-                $mime = $detected;
-            }
-        }
-    }
-
-    return $mime;
+    // O arquivo já foi validado no upload. Não reutilizamos o MIME detectado
+    // aqui, pois um conteúdo malformado poderia ser entregue como HTML no
+    // mesmo domínio. A extensão permitida determina o tipo de resposta.
+    return $mimeMap[$extension] ?? 'application/octet-stream';
 }
 
 function streamAttachment(array $message, bool $download): never

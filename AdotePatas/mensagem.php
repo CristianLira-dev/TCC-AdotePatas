@@ -106,6 +106,10 @@ try {
             responderMensagem(false, $uploadErrors[$code] ?? 'Falha ao receber o arquivo.', [], 400);
         }
 
+        if (!isset($file['tmp_name']) || !is_uploaded_file($file['tmp_name']) || (int) ($file['size'] ?? 0) <= 0) {
+            responderMensagem(false, 'O arquivo enviado é inválido.', [], 400);
+        }
+
         $extension = strtolower(pathinfo((string) $file['name'], PATHINFO_EXTENSION));
         $arquivoNomeOriginal = basename((string) $file['name']);
 
@@ -138,7 +142,7 @@ try {
                     finfo_close($finfo);
                 }
 
-                $allowedVideoMimes = ['video/mp4', 'video/webm', 'video/quicktime', 'application/octet-stream'];
+                $allowedVideoMimes = ['video/mp4', 'video/webm', 'video/quicktime'];
                 if ($mime !== '' && !in_array($mime, $allowedVideoMimes, true)) {
                     responderMensagem(false, 'O arquivo enviado não é um vídeo válido.', [], 400);
                 }

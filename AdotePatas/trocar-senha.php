@@ -1,23 +1,31 @@
 <?php
-include_once 'conexao.php'; // Sua conexão PDO
+require_once __DIR__ . '/conexao.php';
+
+// A página contém um token de recuperação na URL e nunca deve ficar em cache
+// ou ser enviada como referência para outros sites.
+header('Cache-Control: no-store, private');
+header('Pragma: no-cache');
+header('Referrer-Policy: no-referrer');
+header('X-Robots-Tag: noindex, nofollow');
 
 $error_message = null;
-$token = $_GET['token'] ?? null;
-$tokenHash = $token ? hash('sha256', (string) $token) : null;
+$token = trim((string) ($_GET['token'] ?? ''));
+$tokenHash = $token !== '' ? hash('sha256', $token) : null;
 
 // ----------------------------------------------------
 // 1. Validação do Token na Chegada
 // ----------------------------------------------------
-if (!$token) {
+if ($token === '') {
     $error_message = "Token de recuperação não fornecido. Por favor, use o link completo que enviamos para o seu e-mail.";
 } else {
     try {
         $now = date("Y-m-d H:i:s");
         
-        // Busca o token no banco para garantir que ele é válido e não expirou.
-        $sql = "SELECT email FROM recuperar_senha_tolken WHERE (token = :token_hash OR token = :legacy_token) AND expires_at > :now LIMIT 1";
+        // Apenas o hash do token é armazenado e comparado. Isso impede que
+        // tokens utilizáveis existam em texto puro no banco de dados.
+        $sql = "SELECT email FROM recuperar_senha_tolken WHERE token = :token_hash AND expires_at > :now LIMIT 1";
         $stmt = $conn->prepare($sql);
-        $stmt->execute([':token_hash' => $tokenHash, ':legacy_token' => $token, ':now' => $now]);
+        $stmt->execute([':token_hash' => $tokenHash, ':now' => $now]);
         $reset_request = $stmt->fetch();
 
         // Se a busca não retornar nada, o token é inválido ou já expirou.

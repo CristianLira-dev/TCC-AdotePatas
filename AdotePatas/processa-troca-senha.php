@@ -1,8 +1,9 @@
 <?php
-include_once 'conexao.php'; // Sua conexão PDO
+require_once __DIR__ . '/conexao.php';
 
 // Define o cabeçalho da resposta como JSON
 header('Content-Type: application/json');
+header('Cache-Control: no-store, private');
 
 // --- FUNÇÃO DE VALIDAÇÃO DE SENHA (copiada de autenticacao.php) ---
 function validarForcaSenha($senha) {
@@ -18,6 +19,13 @@ function validarForcaSenha($senha) {
 $response = ['success' => false, 'message' => 'Ocorreu um erro desconhecido.'];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (!appRateLimit('password-reset-submit', 15, 900, appClientIp())) {
+        http_response_code(429);
+        $response['message'] = 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
+        echo json_encode($response);
+        exit;
+    }
+
     $token = $_POST['token'] ?? null;
     $tokenHash = $token ? hash('sha256', (string) $token) : null;
     $nova_senha = $_POST['nova_senha'] ?? null;
@@ -50,9 +58,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // 3. Validação do Token e Atualização (Segurança)
     try {
         $now = date("Y-m-d H:i:s");
-        $sql = "SELECT email FROM recuperar_senha_tolken WHERE (token = :token_hash OR token = :legacy_token) AND expires_at > :now LIMIT 1";
+        $sql = "SELECT email FROM recuperar_senha_tolken WHERE token = :token_hash AND expires_at > :now LIMIT 1";
         $stmt = $conn->prepare($sql);
-        $stmt->execute([':token_hash' => $tokenHash, ':legacy_token' => $token, ':now' => $now]);
+        $stmt->execute([':token_hash' => $tokenHash, ':now' => $now]);
         $reset_request = $stmt->fetch();
         if (!$reset_request) {
             $response['message'] = 'Token inválido ou expirado. Por favor, solicite um novo link.';
@@ -86,9 +94,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         // 5. Invalida o token (excluindo-o)
-        $sql_delete = "DELETE FROM recuperar_senha_tolken WHERE token = :token_hash OR token = :legacy_token";
+        $sql_delete = "DELETE FROM recuperar_senha_tolken WHERE token = :token_hash";
         $stmt_delete = $conn->prepare($sql_delete);
-        $stmt_delete->execute([':token_hash' => $tokenHash, ':legacy_token' => $token]);
+        $stmt_delete->execute([':token_hash' => $tokenHash]);
 
         $conn->commit();
         appAudit($conn, 'password_reset', 'account', null, ['email_hash' => hash('sha256', $email_para_atualizar)]);

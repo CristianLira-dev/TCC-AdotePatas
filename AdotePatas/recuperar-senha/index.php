@@ -45,6 +45,11 @@ if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $respond(false, '', 'invalid_email');
 }
 
+// Limita a emissão de links para o mesmo endereço sem revelar se ele existe.
+if (!appRateLimit('password-recovery-email', 3, 3600, $email)) {
+    $respond(true, $email);
+}
+
 $tokenStored = false;
 
 try {
