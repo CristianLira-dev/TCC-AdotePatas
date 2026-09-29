@@ -4,66 +4,64 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: production-ftp-deploy
-  cancel-in-progress: true
-
 jobs:
-  web-deploy:
-    name: Sincronizar arquivos
+  validate-and-deploy:
+    name: Validar e publicar
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: AdotePatas
+
     steps:
-      - name: Baixar código do repositório
+      - name: Baixar código
         uses: actions/checkout@v4
 
-      - name: Preparar PHP
+      - name: Configurar PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: "8.3"
+          extensions: mbstring, mysqli, pdo_mysql
           tools: composer:v2
 
-      - name: Instalar dependências PHP
-        working-directory: AdotePatas
+      - name: Instalar dependências
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Validar dependências
         run: |
-          rm -rf vendor
-          composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
-
-      - name: Validar configuração do Composer
-        working-directory: AdotePatas
-        run: composer validate --strict --no-check-publish
-
-      - name: Auditar dependências
-        working-directory: AdotePatas
-        run: composer audit --locked --no-interaction
+          composer validate --strict --no-check-publish
+          composer audit --locked --no-interaction
 
       - name: Verificar sintaxe PHP
-        working-directory: AdotePatas
-        run: find . -path ./vendor -prune -o -path ./fpdf -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l
+        run: |
+          find . -type f -name "*.php"             -not -path "./vendor/*"             -print0 | xargs -0 -n1 php -l
 
-      - name: Executar testes
-        working-directory: AdotePatas
-        run: php tests/security_test.php
+      - name: Rodar testes
+        run: composer test
 
-      - name: Sincronizar via FTP
+      - name: Publicar via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: AdotePatas/
-          server-dir: htdocs/
+          protocol: ftps
+          port: 21
+          local-dir: ./AdotePatas/
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
           exclude: |
+            **/.git*
+            **/.git*/**
+            **/vendor/**
+            **/node_modules/**
             **/.env
             **/.env.*
-            **/composer.json
-            **/composer.lock
-            **/scripts/**
             **/tests/**
-            **/database/**
-            **/uploads/**
-            **/*.sql
-            **/*.log
+            **/phpunit.xml
+            **/phpunit.xml.dist
+            **/README.md
+            **/composer.lock
