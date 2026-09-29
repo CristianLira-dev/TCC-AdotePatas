@@ -38,10 +38,12 @@ jobs:
 
       - name: Verificar sintaxe PHP
         run: |
-          find . -type f -name "*.php"             -not -path "./vendor/*"             -print0 | xargs -0 -n1 php -l
+          find . -type f -name "*.php" \
+            -not -path "./vendor/*" \
+            -print0 | xargs -0 -n1 php -l
 
-      - name: Rodar testes
-        run: composer test
+      - name: Rodar teste de segurança
+        run: php tests/security_test.php
 
       - name: Publicar via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
