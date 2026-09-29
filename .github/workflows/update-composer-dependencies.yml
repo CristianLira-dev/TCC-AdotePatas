@@ -1,0 +1,41 @@
+name: Atualizar dependências PHP
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-dependencies:
+    name: Atualizar lockfile seguro
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: AdotePatas
+
+    steps:
+      - name: Baixar código do repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+
+      - name: Atualizar dependências com correções de segurança
+        run: |
+          composer update guzzlehttp/psr7 symfony/http-foundation symfony/routing \
+            --with-all-dependencies --no-interaction --prefer-dist --optimize-autoloader
+          composer validate --strict --no-check-publish
+          composer audit --locked --no-interaction
+
+      - name: Registrar lockfile atualizado
+        working-directory: .
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add AdotePatas/composer.lock
+          git diff --cached --quiet || git commit -m "chore(deps): update PHP dependencies"
+          git push
