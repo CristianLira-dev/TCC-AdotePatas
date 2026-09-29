@@ -1,4 +1,5 @@
 {
+    "license": "proprietary",
     "require": {
         "phpmailer/phpmailer": "^7.0",
         "cboden/ratchet": "^0.4.4"
