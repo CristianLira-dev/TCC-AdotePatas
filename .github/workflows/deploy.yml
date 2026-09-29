@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: production-ftp-deploy
+  cancel-in-progress: true
+
 jobs:
   validate-and-deploy:
     name: Validar e publicar
@@ -28,8 +32,8 @@ jobs:
           extensions: mbstring, mysqli, pdo_mysql
           tools: composer:v2
 
-      - name: Instalar dependências
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+      - name: Instalar dependências de produção
+        run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Validar dependências
         run: |
@@ -51,20 +55,22 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          port: 21
           local-dir: ./AdotePatas/
-          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          server-dir: htdocs/
           exclude: |
-            .htaccess
             **/.git*
             **/.git*/**
-            **/vendor/**
-            **/node_modules/**
             **/.env
             **/.env.*
+            **/node_modules/**
             **/tests/**
+            **/scripts/**
+            **/database/**
+            **/uploads/**
+            **/*.sql
+            **/*.log
+            **/composer.json
+            **/composer.lock
+            **/README.md
             **/phpunit.xml
             **/phpunit.xml.dist
-            **/README.md
-            **/composer.lock
